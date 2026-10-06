@@ -27,8 +27,10 @@ export function seatsByPopulation(
 /** Art. 163: barrera del 3 % de los votos válidos (con los votos en blanco) y D'Hondt. */
 export function dhondt(votes: readonly number[], blank: number, seats: number): number[] {
   const valid = votes.reduce((sum, v) => sum + v, blank);
+  // Art. 163.2: Ceuta y Melilla, las únicas con un escaño, eligen por mayoría y sin barrera.
+  const barrier = seats === 1 ? 0 : valid * 3;
   const quotients = votes.flatMap((v, i) =>
-    v * 100 >= valid * 3
+    v * 100 >= barrier
       ? Array.from({ length: seats }, (_, d) => ({ i, votes: v, divisor: d + 1 }))
       : [],
   );

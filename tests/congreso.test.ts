@@ -34,6 +34,10 @@ describe("D'Hondt del art. 163 LOREG", () => {
     expect(dhondt([600, 370, 30], 10, 100)[2]).toBe(0);
   });
 
+  it('sin barrera cuando se elige un solo escaño (art. 163.2)', () => {
+    expect(dhondt([20, 10], 980, 1)).toEqual([1, 0]);
+  });
+
   it('a igual cociente da el escaño a la candidatura con más votos', () => {
     expect(dhondt([3000, 6000], 0, 2)).toEqual([0, 2]);
   });
