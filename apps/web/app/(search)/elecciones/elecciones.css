@@ -330,6 +330,14 @@
   flex-shrink: 0;
   border-radius: 50%;
 }
+/* Los 350 del Congreso, más pequeños para que quepan. */
+.el-escanos[data-pequenos] {
+  gap: var(--e-4);
+}
+.el-escanos[data-pequenos] .el-escano {
+  width: 10px;
+  height: 10px;
+}
 .el-escano[data-tipo='ley'] {
   background: var(--tinta);
 }
@@ -517,12 +525,6 @@
   display: grid;
   gap: var(--e-12);
   margin-top: var(--e-16);
-}
-.el-general {
-  display: grid;
-  gap: var(--e-12);
-  padding-left: var(--e-24);
-  color: var(--tinta-2);
 }
 @media (max-width: 800px) {
   .el-bloque {

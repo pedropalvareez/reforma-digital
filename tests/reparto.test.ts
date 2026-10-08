@@ -439,10 +439,82 @@ describe('laboratorio con partidos ficticios', () => {
   });
 });
 
+describe('sin provincia, con datos de toda España', () => {
+  const general = (n: string) =>
+    new DOMParser()
+      .parseFromString(renderToStaticMarkup(createElement(RepartoGeneral)), 'text/html')
+      .querySelector(`[aria-labelledby="el-bloque-${n}"]`)!;
+  const filasVotos = (b: Element) =>
+    [...b.querySelectorAll('tbody tr')].map((tr) => [
+      tr.querySelector('th')!.textContent!,
+      Number(tr.querySelector('td')!.textContent!.replace(/\D/g, '')),
+    ]);
+
+  it('los 350 escaños: 102 por ley y 248 por población', () => {
+    const b = general('01');
+    const tipos = [...b.querySelectorAll<HTMLElement>('.el-escanos .el-escano')].map(
+      (s) => s.dataset.tipo,
+    );
+    expect(tipos).toHaveLength(350);
+    expect(tipos.filter((t) => t === 'ley')).toHaveLength(102);
+    expect(tipos.filter((t) => t === 'poblacion')).toHaveLength(248);
+    expect(b.querySelector('.el-paso')?.textContent).toBe(
+      '2 por cada una de las 50 provincias, más Ceuta y Melilla: 102 por ley. Los 248 restantes, según la población.',
+    );
+    expect(b.textContent).toContain('Elige tu provincia');
+  });
+
+  it('los votos sin escaño son la suma de las 52 circunscripciones, con la barrera de cada una', () => {
+    // Cada fila suma la misma fila de las 52 fichas; Ceuta y Melilla, sin barrera, van a la segunda.
+    const suma = new Map<string, number>();
+    for (const p of provincias) {
+      for (const [texto, n] of filasVotos(bloque(p, '03'))) {
+        const fila =
+          texto === 'A candidaturas sin escaño'
+            ? 'A candidaturas sin escaño que superaron el 3 %'
+            : String(texto);
+        suma.set(fila, (suma.get(fila) ?? 0) + Number(n));
+      }
+    }
+    const b = general('03');
+    expect(filasVotos(b)).toEqual([...suma]);
+    expect(suma.get('Votos emitidos')).toBe(
+      provincias.reduce((s, p) => s + p.results2023.voters, 0),
+    );
+    const sinBarrera = ['51', '52']
+      .flatMap((id) => provincia(id).results2023.candidatures)
+      .reduce((s, c) => (c.seats === 0 ? s + c.votes : s), 0);
+    expect(b.textContent).toContain(
+      `Ceuta y Melilla no tienen barrera: sus ${new Intl.NumberFormat('es-ES').format(sinBarrera)} votos a candidaturas sin escaño se cuentan en la segunda fila.`,
+    );
+    const noVotaron = provincias.reduce(
+      (s, p) => s + p.results2023.census - p.results2023.voters,
+      0,
+    );
+    expect(b.textContent).toContain(
+      `Además, ${new Intl.NumberFormat('es-ES').format(noVotaron)} personas con derecho a voto no votaron`,
+    );
+  });
+
+  it('el hemiciclo de 350 no enciende ninguna provincia y marca la mayoría de 176', () => {
+    const b = general('04');
+    expect(b.querySelectorAll('svg > circle')).toHaveLength(350);
+    expect(b.querySelector('[data-tuyo]')).toBeNull();
+    expect(b.querySelector('.el-paso')?.textContent).toBe(
+      'La línea marca la mitad: la mayoría absoluta son 176.',
+    );
+  });
+});
+
 it('sin provincia explica el reparto en general, con el laboratorio en una provincia inventada', async () => {
   await montar(createElement(RepartoGeneral), async (c) => {
     expect(c.querySelector('h2')!.textContent).toBe('Cómo se eligen los diputados');
-    expect(c.querySelectorAll('.el-bloque')).toHaveLength(2);
+    expect([...c.querySelectorAll('.el-bloque h3')].map((h) => h.textContent)).toEqual([
+      'De dónde salen los 350 escaños',
+      'Laboratorio con partidos inventados',
+      'Votos que no eligieron a nadie',
+      'Los 350 escaños del Congreso',
+    ]);
     const escanos = [...c.querySelectorAll('.el-lab .el-dhondt-escanos')].reduce(
       (suma, s) => suma + Number(s.textContent!.match(/(\d+) escaño/)?.[1] ?? 0),
       0,
