@@ -278,3 +278,210 @@
   color: var(--tinta-2);
   font-size: 14px;
 }
+
+/* Reparto paso a paso de la provincia elegida: texto a la izquierda y figura a la derecha. */
+.el-reparto {
+  margin-top: var(--e-48);
+}
+.el-reparto > h2 {
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.2;
+}
+.el-bloque {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: start;
+  gap: var(--e-32);
+  padding-block: var(--e-32);
+  border-bottom: 1px solid var(--linea);
+}
+.el-bloque-texto {
+  display: grid;
+  gap: var(--e-12);
+  max-width: 65ch;
+  color: var(--tinta-2);
+}
+.el-bloque-texto h3 {
+  color: var(--tinta);
+}
+.el-pasos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-12);
+  margin-top: var(--e-16);
+}
+.el-pasos > span {
+  font-size: 14px;
+  color: var(--tinta-2);
+}
+.el-paso {
+  margin-top: var(--e-12);
+  color: var(--tinta-2);
+}
+.el-escanos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-8);
+}
+.el-escano {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+.el-escano[data-tipo='ley'] {
+  background: var(--tinta);
+}
+.el-escano[data-tipo='poblacion'] {
+  background: var(--tinta-3);
+}
+.el-escano[data-tipo='nuevo'] {
+  background: var(--amarillo);
+  box-shadow: inset 0 0 0 2px var(--tinta);
+}
+.el-escano[data-tipo='perdido'] {
+  border: 2px dashed var(--tinta-3);
+}
+.el-reparto .el-leyenda {
+  margin-top: var(--e-16);
+}
+/* Una fila por candidatura: siglas y escaños arriba; la barra del cociente debajo. */
+.el-dhondt {
+  display: grid;
+  gap: var(--e-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.el-dhondt li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-4) var(--e-12);
+  padding: var(--e-8) var(--e-12);
+  border-radius: var(--r-12);
+}
+.el-dhondt li[data-gana] {
+  background: var(--amarillo);
+}
+.el-siglas {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.el-dhondt-escanos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 3px;
+  max-width: 12rem;
+  font: 500 14px var(--font-mono);
+}
+.el-dhondt-escanos i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tinta);
+}
+.el-dhondt-barra {
+  height: 12px;
+  overflow: hidden;
+  border-radius: var(--r-pildora);
+  background: var(--superficie);
+}
+.el-dhondt li[data-gana] .el-dhondt-barra {
+  background: var(--blanco);
+}
+.el-dhondt-barra i {
+  display: block;
+  height: 100%;
+  background: var(--tinta-3);
+  transform-origin: left;
+  transition: transform var(--t-medio) var(--curva-salida);
+}
+.el-dhondt-cociente {
+  font-size: 14px;
+}
+.el-dhondt-fuera {
+  margin-top: var(--e-12);
+  color: var(--tinta-2);
+  font-size: 14px;
+}
+.el-reparto .el-tabla {
+  margin-top: var(--e-16);
+}
+.el-divisores caption {
+  color: var(--tinta-2);
+  text-align: left;
+}
+.el-divisores td {
+  transition: background-color var(--t-medio) var(--curva-salida);
+}
+.el-divisores [data-escano] {
+  background: color-mix(in srgb, var(--amarillo) 35%, var(--blanco));
+  font-weight: 600;
+}
+.el-divisores [data-gana] {
+  background: var(--amarillo);
+}
+/* Votos emitidos según su destino: una barra en tonos neutros y la tabla, que sirve de leyenda. */
+.el-votos-cifra {
+  margin-bottom: var(--e-16);
+}
+.el-votos {
+  display: flex;
+  height: 32px;
+  overflow: hidden;
+  border-radius: var(--r-12);
+  box-shadow: 0 0 0 1px var(--tinta-3);
+}
+.el-votos span {
+  flex: 0 0 0;
+}
+.el-reparto [data-tono='escano'] {
+  background: var(--tinta);
+}
+.el-reparto [data-tono='sin'] {
+  background: var(--tinta-3);
+}
+.el-reparto [data-tono='bajo'] {
+  background: color-mix(in srgb, var(--tinta) 35%, var(--blanco));
+}
+.el-reparto [data-tono='blanco'] {
+  background: var(--superficie);
+}
+.el-reparto [data-tono='nulo'] {
+  background: var(--blanco);
+}
+.el-reparto th .el-muestra {
+  display: inline-block;
+  margin-right: var(--e-8);
+  vertical-align: -4px;
+}
+.el-hemiciclo circle {
+  fill: color-mix(in srgb, var(--tinta) 15%, var(--blanco));
+}
+.el-hemiciclo [data-tuyo] {
+  fill: var(--amarillo);
+  stroke: var(--tinta);
+  stroke-width: 0.6px;
+}
+.el-hemiciclo line {
+  stroke: var(--tinta);
+  stroke-width: 0.6px;
+  stroke-dasharray: 2 2;
+}
+@media (max-width: 800px) {
+  .el-bloque {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--e-16);
+  }
+}
+/* Sin movimiento: los mismos pasos cambian en el acto. */
+@media (prefers-reduced-motion: reduce) {
+  .el-dhondt-barra i,
+  .el-divisores td {
+    transition: none;
+  }
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dhondt, seatsByPopulation } from '../apps/web/lib/congreso';
+import { cocientes, dhondt, seatsByPopulation } from '../apps/web/lib/congreso';
 import results2023 from '../apps/web/lib/congreso-2023.json';
 import constituencies2026 from '../apps/web/lib/congreso-2026.json';
 
@@ -28,6 +28,15 @@ describe("D'Hondt del art. 163 LOREG", () => {
   it('exige al menos el 3 % de los votos válidos', () => {
     expect(dhondt([600, 370, 30], 0, 100)[2]).toBe(3);
     expect(dhondt([600, 371, 29], 0, 100)[2]).toBe(0);
+  });
+
+  it('ordena de mayor a menor los cocientes de las candidaturas que superan la barrera', () => {
+    expect(cocientes([600, 370, 29], 1, 2)).toEqual([
+      { i: 0, votes: 600, divisor: 1 },
+      { i: 1, votes: 370, divisor: 1 },
+      { i: 0, votes: 600, divisor: 2 },
+      { i: 1, votes: 370, divisor: 2 },
+    ]);
   });
 
   it('cuenta el voto en blanco al calcular la barrera', () => {

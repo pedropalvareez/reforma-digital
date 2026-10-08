@@ -24,6 +24,7 @@ const desplazarCanarias = (path: string) =>
     (_, x: string, y: string) => `${+(Number(x) - 12).toFixed(1)},${+(Number(y) + 8).toFixed(1)}`,
   );
 
+const siglas = new Map(Object.entries(results2023.parties).map(([code, p]) => [code, p.acronym]));
 // En pantalla, sin la forma doble y con el artículo delante; el JSON conserva el nombre oficial.
 const nombres: Record<string, string> = {
   '01': 'Álava',
@@ -40,6 +41,11 @@ export const provincias = constituencies2026.map((c) => {
   const shape = shapes.find((s) => s.id === c.id);
   const before = results2023.constituencies.find((r) => r.id === c.id);
   if (!shape || !before) throw new Error(`Faltan datos de la circunscripción ${c.id}`);
+  const candidatures = before.candidatures.map((x) => {
+    const acronym = siglas.get(x.code);
+    if (!acronym) throw new Error(`Faltan las siglas de la candidatura ${x.code}`);
+    return { ...x, acronym };
+  });
   const perSeat = c.population / c.seats;
   // Centro aproximado: media de los vértices del trazado.
   const path = CANARIAS.has(c.id) ? desplazarCanarias(shape.path) : shape.path;
@@ -59,6 +65,8 @@ export const provincias = constituencies2026.map((c) => {
     seats2023: before.seats,
     validVotesPerSeat2023:
       before.candidatures.reduce((sum, x) => sum + x.votes, before.blank) / before.seats,
+    // Resultados oficiales de 2023, ordenados por votos: solo se leen.
+    results2023: { ...before, candidatures },
   };
 });
 

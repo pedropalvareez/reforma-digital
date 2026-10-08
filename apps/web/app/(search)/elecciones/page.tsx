@@ -16,6 +16,7 @@ import {
 } from '../../../lib/elecciones';
 import { EligeProvincia } from './elige-provincia';
 import { InfoDato } from './info-dato';
+import { Reparto } from './reparto';
 import { TablaProvincias } from './tabla-provincias';
 import './elecciones.css';
 
@@ -229,7 +230,8 @@ export default async function Elecciones({ searchParams }: Props) {
               <Ficha p={provincia} />
             ) : (
               <p>
-                Elige una provincia en el mapa o en el desplegable. En toda España hay{' '}
+                Elige una provincia en el mapa o en el desplegable para ver sus datos y, paso a
+                paso, cómo se eligen sus diputados. En toda España hay{' '}
                 {numero.format(averagePerSeat)} habitantes por escaño.
               </p>
             )}
@@ -252,6 +254,8 @@ export default async function Elecciones({ searchParams }: Props) {
           }))}
         />
       </details>
+
+      {provincia && <Reparto p={provincia} />}
 
       <div className="info-prosa">
         <h2>Cómo se reparten los escaños.</h2>
@@ -338,6 +342,11 @@ function Ficha({ p }: { p: Provincia }) {
             : `Tiene los 2 escaños que la ley da a cada provincia y ${p.seats - 2} más por su población.`}{' '}
         <a className="enlace" href={fuentes.loreg}>
           Art. 162 de la LOREG
+        </a>
+      </p>
+      <p>
+        <a className="enlace" href="#reparto">
+          Cómo se eligen sus diputados, paso a paso
         </a>
       </p>
       <p className="el-fuentes">

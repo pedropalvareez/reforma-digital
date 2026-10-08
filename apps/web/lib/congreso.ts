@@ -24,8 +24,8 @@ export function seatsByPopulation(
   });
 }
 
-/** Art. 163: barrera del 3 % de los votos válidos (con los votos en blanco) y D'Hondt. */
-export function dhondt(votes: readonly number[], blank: number, seats: number): number[] {
+/** Art. 163: cocientes de las candidaturas que superan la barrera, de mayor a menor. */
+export function cocientes(votes: readonly number[], blank: number, seats: number) {
   const valid = votes.reduce((sum, v) => sum + v, blank);
   // Art. 163.2: Ceuta y Melilla, las únicas con un escaño, eligen por mayoría y sin barrera.
   const barrier = seats === 1 ? 0 : valid * 3;
@@ -35,7 +35,12 @@ export function dhondt(votes: readonly number[], blank: number, seats: number): 
       : [],
   );
   // Mayor cociente primero; a igual cociente, la candidatura con más votos totales (art. 163.1.d).
-  quotients.sort((a, b) => b.votes * a.divisor - a.votes * b.divisor || b.votes - a.votes);
+  return quotients.sort((a, b) => b.votes * a.divisor - a.votes * b.divisor || b.votes - a.votes);
+}
+
+/** Art. 163: barrera del 3 % de los votos válidos (con los votos en blanco) y D'Hondt. */
+export function dhondt(votes: readonly number[], blank: number, seats: number): number[] {
+  const quotients = cocientes(votes, blank, seats);
   const last = quotients[seats - 1];
   const next = quotients[seats];
   if (last && next && last.votes === next.votes && last.divisor === next.divisor) {
