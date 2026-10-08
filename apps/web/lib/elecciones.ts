@@ -24,6 +24,18 @@ const desplazarCanarias = (path: string) =>
     (_, x: string, y: string) => `${+(Number(x) - 12).toFixed(1)},${+(Number(y) + 8).toFixed(1)}`,
   );
 
+// En pantalla, sin la forma doble y con el artículo delante; el JSON conserva el nombre oficial.
+const nombres: Record<string, string> = {
+  '01': 'Álava',
+  '03': 'Alicante',
+  '07': 'Illes Balears',
+  '12': 'Castellón',
+  '15': 'A Coruña',
+  '26': 'La Rioja',
+  '35': 'Las Palmas',
+  '46': 'Valencia',
+};
+
 export const provincias = constituencies2026.map((c) => {
   const shape = shapes.find((s) => s.id === c.id);
   const before = results2023.constituencies.find((r) => r.id === c.id);
@@ -36,6 +48,7 @@ export const provincias = constituencies2026.map((c) => {
   const y = n.filter((_, i) => i % 2 === 1);
   return {
     ...c,
+    name: nombres[c.id] ?? c.name,
     path,
     centro: {
       x: x.reduce((a, b) => a + b, 0) / x.length,

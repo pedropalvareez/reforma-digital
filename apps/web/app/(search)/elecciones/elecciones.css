@@ -26,6 +26,21 @@
 .el-barra form:has(select) {
   margin: 0;
 }
+/* Flecha propia en vez de la nativa, que no se separa del borde con el relleno. */
+.el-desplegable {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.el-desplegable select {
+  appearance: none;
+  padding-right: 44px;
+}
+.el-desplegable .icono {
+  position: absolute;
+  right: var(--e-16);
+  pointer-events: none;
+}
 .el-vistas {
   display: flex;
   flex-wrap: wrap;

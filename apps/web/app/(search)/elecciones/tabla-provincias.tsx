@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { IconChevronDownOutline18 } from 'nucleo-ui-essential-outline-18';
 import { useState } from 'react';
 
 type Fila = {
@@ -39,7 +40,7 @@ function cambio(diferencia: number) {
 export function TablaProvincias({ items }: { items: Fila[] }) {
   const [busqueda, setBusqueda] = useState('');
   const [orden, setOrden] = useState<(typeof ordenes)[number]>(ordenes[0]);
-  // Cada palabra debe aparecer en el nombre: «la rioja» encuentra «Rioja (La)».
+  // Cada palabra debe aparecer en el nombre: «cruz tenerife» encuentra «Santa Cruz de Tenerife».
   const palabras = normal(busqueda).split(/\s+/).filter(Boolean);
   const visibles = items
     .filter((p) => palabras.every((palabra) => normal(p.name).includes(palabra)))
@@ -54,18 +55,21 @@ export function TablaProvincias({ items }: { items: Fila[] }) {
         </label>
         <label>
           Ordenar por
-          <select
-            value={orden.valor}
-            onChange={(e) =>
-              setOrden(ordenes.find((o) => o.valor === e.target.value) ?? ordenes[0])
-            }
-          >
-            {ordenes.map((o) => (
-              <option key={o.valor} value={o.valor}>
-                {o.texto}
-              </option>
-            ))}
-          </select>
+          <span className="el-desplegable">
+            <select
+              value={orden.valor}
+              onChange={(e) =>
+                setOrden(ordenes.find((o) => o.valor === e.target.value) ?? ordenes[0])
+              }
+            >
+              {ordenes.map((o) => (
+                <option key={o.valor} value={o.valor}>
+                  {o.texto}
+                </option>
+              ))}
+            </select>
+            <IconChevronDownOutline18 size={16} className="icono" aria-hidden />
+          </span>
         </label>
       </div>
       <p className="el-recuento" role="status">

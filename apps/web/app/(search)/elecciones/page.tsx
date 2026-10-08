@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Form from 'next/form';
 import Link from 'next/link';
+import { IconChevronDownOutline18 } from 'nucleo-ui-essential-outline-18';
 import { PaginaInformativa } from '../../../components/sol/pagina-informativa';
 import {
   averagePerSeat,
@@ -94,12 +95,15 @@ export default async function Elecciones({ searchParams }: Props) {
           </nav>
           <Form action="/elecciones" scroll={false}>
             <label htmlFor="el-elige">Elige tu provincia</label>
-            <EligeProvincia
-              actual={provincia?.id}
-              opciones={provincias
-                .map(({ id, name }) => ({ id, name }))
-                .sort((a, b) => a.name.localeCompare(b.name, 'es'))}
-            />
+            <span className="el-desplegable">
+              <EligeProvincia
+                actual={provincia?.id}
+                opciones={provincias
+                  .map(({ id, name }) => ({ id, name }))
+                  .sort((a, b) => a.name.localeCompare(b.name, 'es'))}
+              />
+              <IconChevronDownOutline18 size={16} className="icono" aria-hidden />
+            </span>
             {escanos && <input type="hidden" name="vista" value="escanos" />}
             {/* Sin JavaScript el cambio no envía el formulario. */}
             <noscript>

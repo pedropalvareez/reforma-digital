@@ -69,6 +69,10 @@ describe('?provincia= en /elecciones', () => {
   });
 });
 
+it('muestra un solo nombre por provincia, con el artículo delante', () => {
+  expect(provincias.map((p) => p.name).filter((n) => /[/()]/.test(n))).toEqual([]);
+});
+
 it('dibuja Canarias dentro de su recuadro, con margen', () => {
   const { x, y, width, height } = recuadroCanarias;
   for (const id of ['35', '38']) {
@@ -120,14 +124,14 @@ it('la tabla busca sin tildes y ordena por nombre o escaños', async () => {
     await act(async () => root.render(createElement(TablaProvincias, { items })));
     const busqueda = container.querySelector('input')!;
     const orden = container.querySelector('select')!;
-    expect(nombres().slice(0, 2)).toEqual(['Albacete', 'Alicante/Alacant']);
+    expect(nombres().slice(0, 3)).toEqual(['A Coruña', 'Álava', 'Albacete']);
     await cambiar(orden, 'escanos');
-    expect(nombres().slice(0, 3)).toEqual(['Madrid', 'Barcelona', 'Valencia/València']);
+    expect(nombres().slice(0, 3)).toEqual(['Madrid', 'Barcelona', 'Valencia']);
     expect([...orden.options].map((o) => o.text)).toEqual(['Nombre', 'Escaños']);
     await cambiar(busqueda, 'avila');
     expect(nombres()).toEqual(['Ávila']);
-    await cambiar(busqueda, 'la rioja');
-    expect(nombres()).toEqual(['Rioja (La)']);
+    await cambiar(busqueda, 'cruz tenerife');
+    expect(nombres()).toEqual(['Santa Cruz de Tenerife']);
     await cambiar(busqueda, 'xyz');
     expect(nombres()).toEqual([]);
     expect(container.textContent).toContain('Ninguna circunscripción coincide con «xyz».');
