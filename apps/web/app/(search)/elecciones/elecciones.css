@@ -472,6 +472,58 @@
   stroke-width: 0.6px;
   stroke-dasharray: 2 2;
 }
+/* Laboratorio: las filas del D'Hondt con un deslizador debajo, sin animación. */
+.el-lab output {
+  margin-left: var(--e-4);
+  color: var(--tinta-2);
+  font-size: 14px;
+}
+.el-lab li {
+  row-gap: 0;
+}
+/* 28 px en vez de los 44 de .info-pagina input: más que el mínimo de 24 px de WCAG 2.5.8 sin
+   alargar cada fila. */
+.el-lab input {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 28px;
+  min-height: 0;
+  margin: 0;
+  accent-color: var(--tinta);
+}
+.el-faltan {
+  grid-column: 1 / -1;
+  color: var(--tinta-2);
+  font-size: 14px;
+}
+/* Dos por fila, del mismo ancho; en pantallas estrechas el texto pasa a dos líneas. */
+.el-experimentos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.el-experimentos button {
+  padding: var(--e-8) var(--e-12);
+  white-space: normal;
+  text-align: center;
+}
+.el-experimentos [aria-pressed='true'] {
+  background: var(--tinta);
+  color: var(--blanco);
+}
+.el-experimentos [aria-pressed='true']::before {
+  background: var(--tinta-2);
+}
+.el-experimento {
+  display: grid;
+  gap: var(--e-12);
+  margin-top: var(--e-16);
+}
+.el-general {
+  display: grid;
+  gap: var(--e-12);
+  padding-left: var(--e-24);
+  color: var(--tinta-2);
+}
 @media (max-width: 800px) {
   .el-bloque {
     grid-template-columns: minmax(0, 1fr);

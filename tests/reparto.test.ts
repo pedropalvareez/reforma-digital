@@ -5,7 +5,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { RepartoDhondt } from '../apps/web/app/(search)/elecciones/animaciones';
 import Elecciones from '../apps/web/app/(search)/elecciones/page';
-import { Reparto } from '../apps/web/app/(search)/elecciones/reparto';
+import { Reparto, RepartoGeneral } from '../apps/web/app/(search)/elecciones/reparto';
+import { dhondt } from '../apps/web/lib/congreso';
 import { provincias, type Provincia } from '../apps/web/lib/elecciones';
 
 const provincia = (id: string) => provincias.find((p) => p.id === id)!;
@@ -229,10 +230,238 @@ describe('votos que no eligieron a nadie', () => {
   });
 });
 
-it('la sección aparece al elegir provincia y la ficha enlaza a ella', async () => {
+describe('laboratorio con partidos ficticios', () => {
+  const laboratorio = (c: HTMLElement) =>
+    c.querySelector<HTMLElement>('[aria-labelledby="el-bloque-05"]')!;
+  // Porcentajes de A, B, C, D y blanco en décimas, como los muestra cada deslizador.
+  const valores = (c: HTMLElement) =>
+    [...laboratorio(c).querySelectorAll('output')].map((o) =>
+      Math.round(Number(o.textContent!.replace(/[^\d,]/g, '').replace(',', '.')) * 10),
+    );
+  const escanos = (c: HTMLElement) =>
+    [...laboratorio(c).querySelectorAll('.el-lab li')]
+      .slice(0, 4)
+      .map((li) =>
+        Number(
+          li.querySelector('.el-dhondt-escanos')!.textContent!.match(/(\d+) escaño/)?.[1] ?? 0,
+        ),
+      );
+  const n = (escanos: number) => (escanos === 1 ? '1 escaño' : `${escanos} escaños`);
+  const texto = (c: HTMLElement) => laboratorio(c).querySelector('.el-experimento')!.textContent;
+  const mover = (c: HTMLElement, i: number, valor: string) =>
+    act(async () => {
+      const input = laboratorio(c).querySelectorAll('input')[i]!;
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, valor);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  const experimento = (
+    p: Provincia,
+    nombre: string,
+    prueba: (c: HTMLElement, v: number[]) => void,
+  ) =>
+    montar(createElement(Reparto, { p }), async (c) => {
+      await pulsar(c, nombre);
+      expect(boton(c, nombre).getAttribute('aria-pressed')).toBe('true');
+      const v = valores(c);
+      prueba(c, v);
+    });
+
+  it('los deslizadores siempre suman el 100 %', async () => {
+    await montar(createElement(Reparto, { p: provincia('42') }), async (c) => {
+      const suma = () => valores(c).reduce((a, b) => a + b, 0);
+      expect(suma()).toBe(1000);
+      for (const [i, valor] of [
+        [0, '61.3'],
+        [4, '0'],
+        [3, '100'],
+        [1, '33.3'],
+        [2, '0.1'],
+        [0, '0'],
+      ] as const) {
+        await mover(c, i, valor);
+        expect(valores(c)[i]).toBe(Math.round(Number(valor) * 10));
+        expect(suma()).toBe(1000);
+      }
+    });
+  });
+
+  it('en Madrid el blanco deja sin escaño a quien queda cerca del 3 %; en Soria no cambia nada', async () => {
+    await experimento(provincia('28'), 'El blanco eleva la barrera', (c, v) => {
+      const sin = dhondt(v.slice(0, 4), 0, 38);
+      const con = dhondt(v.slice(0, 4), v[4]!, 38);
+      expect(sin[3]).toBeGreaterThan(0);
+      expect(con[3]).toBe(0);
+      expect(escanos(c)).toEqual(con);
+      const gana = ['A', 'B', 'C'].filter((_, i) => con[i]! > sin[i]!);
+      expect(texto(c)).toContain('El voto en blanco es un sobre vacío');
+      expect(texto(c)).toContain(`D tendría ${n(sin[3]!)}, que ahora se lleva ${gana.join('')}.`);
+    });
+    await experimento(provincia('42'), 'El blanco eleva la barrera', (c, v) => {
+      expect(dhondt(v.slice(0, 4), v[4]!, 2)).toEqual(dhondt(v.slice(0, 4), 0, 2));
+      expect(texto(c)).toContain('pero D seguiría sin escaño: con 2 escaños');
+    });
+  });
+
+  const madrid = provincia('28');
+  const validosMadrid = madrid.results2023.voters - madrid.results2023.invalid;
+
+  it('dice cuántos votos le faltan a cada partido para otro escaño', async () => {
+    await experimento(madrid, 'El blanco eleva la barrera', (c, v) => {
+      const reales = v.map((x) => (x * validosMadrid) / 1000);
+      // Escaños del partido i si sumara x votos, con los demás iguales.
+      const con = (i: number, x: number) =>
+        dhondt(
+          reales.slice(0, 4).map((r, j) => (j === i ? r + x : r)),
+          reales[4]!,
+          38,
+        )[i]!;
+      const filas = [...laboratorio(c).querySelectorAll('.el-lab li')].slice(0, 4);
+      for (const [i, li] of filas.entries()) {
+        const frase = li.querySelector('.el-faltan')!.textContent!;
+        const falta = Number(frase.replace(/\D/g, ''));
+        const tiene = con(i, 0);
+        expect(frase).toContain(tiene ? 'para otro escaño' : 'para su primer escaño');
+        expect(con(i, falta)).toBeGreaterThan(tiene);
+        expect(con(i, falta - 1)).toBe(tiene);
+      }
+    });
+  });
+
+  it('con más participación y los mismos porcentajes, los escaños no cambian', async () => {
+    await montar(createElement(Reparto, { p: madrid }), async (c) => {
+      const antes = valores(c);
+      await pulsar(c, '¿Y si vota más gente?');
+      expect(valores(c)).toEqual(antes);
+      const mas = Math.round(validosMadrid / 10);
+      const conTotal = (total: number) =>
+        dhondt(
+          antes.slice(0, 4).map((x) => Math.round((x * total) / 1000)),
+          Math.round((antes[4]! * total) / 1000),
+          38,
+        );
+      expect(conTotal(validosMadrid + mas)).toEqual(conTotal(validosMadrid));
+      const barrera = (total: number) =>
+        new Intl.NumberFormat('es-ES').format(Math.ceil((total * 3) / 100));
+      expect(texto(c)).toContain('los escaños no cambiarían');
+      expect(texto(c)).toContain(
+        `de ${barrera(validosMadrid)} a ${barrera(validosMadrid + mas)} votos`,
+      );
+    });
+  });
+
+  it('los mismos porcentajes dan repartos distintos en Soria, en la provincia y en Madrid', async () => {
+    await experimento(provincia('45'), 'Provincia pequeña y grande', (c, v) => {
+      const esperado = [2, 6, 38].map((seats) => dhondt(v.slice(0, 4), v[4]!, seats));
+      expect(esperado[0]).not.toEqual(esperado[2]);
+      const columnas = [...laboratorio(c).querySelectorAll('.el-experimento thead th')].map(
+        (th) => th.textContent,
+      );
+      expect(columnas).toEqual(['Partido', 'Soria (2)', 'Toledo (6)', 'Madrid (38)']);
+      const celdas = [...laboratorio(c).querySelectorAll('.el-experimento tbody tr')].map((tr) =>
+        [...tr.querySelectorAll('td')].map((td) => Number(td.textContent)),
+      );
+      expect(celdas).toEqual([0, 1, 2, 3].map((i) => esperado.map((r) => r[i])));
+    });
+  });
+
+  describe('presentarse juntos', () => {
+    // Escaños de C y D por separado y en una sola lista, con el escenario del experimento.
+    const juntosYSeparados = (p: Provincia, v: number[]) => {
+      const [a = 0, b = 0, cc = 0, d = 0, blanco = 0] = v;
+      const separadas = dhondt([a, b, cc, d], blanco, p.seats);
+      const juntas = dhondt([a, b, cc + d], blanco, p.seats);
+      return {
+        separadas,
+        juntas,
+        pierden: ['A', 'B'].filter((_, i) => juntas[i]! < separadas[i]!),
+      };
+    };
+    const boton = 'Presentarse juntos: C + D';
+
+    it('en Madrid les da un escaño más que por separado', async () => {
+      await experimento(provincia('28'), boton, (c, v) => {
+        const { separadas, juntas, pierden } = juntosYSeparados(provincia('28'), v);
+        expect(separadas.slice(2)).toEqual([5, 5]);
+        expect(juntas[2]).toBe(11);
+        expect(texto(c)).toBe(
+          `Antes de las elecciones, dos partidos pueden presentarse juntos en una sola lista. En Madrid, por separado, con el 14,0 % y el 12,0 %, C y D conseguirían 5 y 5 escaños. Juntos, con el 26,0 %, conseguirían 11: uno más, a costa de ${pierden.join(' y ')}. Con D'Hondt, juntos pueden sacar más que por separado.`,
+        );
+      });
+    });
+
+    it('en Albacete por separado no conseguirían escaño y juntos sí', async () => {
+      await experimento(provincia('02'), boton, (c, v) => {
+        const { separadas, juntas, pierden } = juntosYSeparados(provincia('02'), v);
+        expect(separadas.slice(2)).toEqual([0, 0]);
+        expect(juntas[2]).toBe(1);
+        // Por separado, C se queda a un voto del último escaño: en singular.
+        expect(laboratorio(c).querySelectorAll('.el-faltan')[2]!.textContent).toBe(
+          'Le falta 1 voto para su primer escaño.',
+        );
+        expect(texto(c)).toContain(
+          `ni C ni D conseguirían escaño. Juntos, con el 26,0 %, conseguirían 1 escaño, a costa de ${pierden.join(' y ')}.`,
+        );
+      });
+    });
+
+    it('en Soria no lo consiguen ni juntos', async () => {
+      await experimento(provincia('42'), boton, (c, v) => {
+        const { separadas, juntas } = juntosYSeparados(provincia('42'), v);
+        expect([...separadas.slice(2), juntas[2]]).toEqual([0, 0, 0]);
+        expect(texto(c)).toContain(
+          'ni C ni D conseguirían escaño. Juntos, con el 26,0 %, tampoco.',
+        );
+      });
+    });
+  });
+
+  it('pulsar otra vez el experimento lo cierra y deja los valores libres', async () => {
+    await montar(createElement(Reparto, { p: provincia('42') }), async (c) => {
+      const juntos = 'Presentarse juntos: C + D';
+      await pulsar(c, juntos);
+      const v = valores(c);
+      await pulsar(c, juntos);
+      expect(boton(c, juntos).getAttribute('aria-pressed')).toBe('false');
+      expect(laboratorio(c).querySelector('.el-experimento')).toBeNull();
+      expect(valores(c)).toEqual(v);
+    });
+  });
+
+  it('nunca usa siglas de partidos reales', () => {
+    const siglas = new Set(
+      provincias.flatMap((p) => p.results2023.candidatures.map((x) => x.acronym)),
+    );
+    const nombres = [...bloque(provincia('28'), '05').querySelectorAll('.el-lab label')].map((l) =>
+      l.textContent!.replace('Partido ', ''),
+    );
+    expect(nombres).toEqual(['A', 'B', 'C', 'D', 'En blanco']);
+    expect(nombres.filter((n) => siglas.has(n))).toEqual([]);
+  });
+});
+
+it('sin provincia explica el reparto en general, con el laboratorio en una provincia inventada', async () => {
+  await montar(createElement(RepartoGeneral), async (c) => {
+    expect(c.querySelector('h2')!.textContent).toBe('Cómo se eligen los diputados');
+    expect(c.querySelectorAll('.el-bloque')).toHaveLength(2);
+    const escanos = [...c.querySelectorAll('.el-lab .el-dhondt-escanos')].reduce(
+      (suma, s) => suma + Number(s.textContent!.match(/(\d+) escaño/)?.[1] ?? 0),
+      0,
+    );
+    expect(escanos).toBe(5);
+    await pulsar(c, 'Provincia pequeña y grande');
+    const columnas = [...c.querySelectorAll('.el-experimento thead th')].map(
+      (th) => th.textContent,
+    );
+    expect(columnas).toEqual(['Partido', 'Soria (2)', 'Madrid (38)']);
+  });
+});
+
+it('la sección de la provincia aparece al elegirla y la ficha enlaza a ella', async () => {
   const pagina = async (query: Record<string, string>) =>
     renderToStaticMarkup(await Elecciones({ searchParams: Promise.resolve(query) }));
-  expect(await pagina({})).not.toContain('id="reparto"');
+  expect(await pagina({})).toContain(
+    '<h2 id="el-reparto-titulo">Cómo se eligen los diputados</h2>',
+  );
   const html = await pagina({ provincia: '42' });
   expect(html).toContain('<h2 id="el-reparto-titulo">Cómo se eligen los diputados de Soria</h2>');
   expect(html).toContain('href="#reparto"');

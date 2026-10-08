@@ -1,13 +1,79 @@
-import type { ReactNode } from 'react';
 import { cocientes } from '../../../lib/congreso';
-import { averagePerSeat, SEATS, type Provincia } from '../../../lib/elecciones';
+import { averagePerSeat, provincias, SEATS, type Provincia } from '../../../lib/elecciones';
 import { RepartoDhondt } from './animaciones';
+import { Bloque } from './bloque';
+import { Laboratorio } from './laboratorio';
 
 const numero = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 });
 const porcentaje = new Intl.NumberFormat('es-ES', { style: 'percent', maximumFractionDigits: 1 });
 // Partes pequeñas del Congreso o de la población, como 0,57 %: dos cifras significativas.
 const cuota = new Intl.NumberFormat('es-ES', { style: 'percent', maximumSignificantDigits: 2 });
 const loreg163 = 'https://www.boe.es/buscar/act.php?id=BOE-A-1985-11672#a163';
+// El laboratorio compara la provincia elegida con la que menos escaños elige y la que más.
+const SORIA = '42';
+const MADRID = '28';
+const validos = (p: Provincia) => p.results2023.voters - p.results2023.invalid;
+const circunscripcion = (p: Provincia) => ({ name: p.name, seats: p.seats, validos: validos(p) });
+const comparar = (ids: string[]) =>
+  provincias
+    .filter((q) => ids.includes(q.id))
+    .sort((a, b) => a.seats - b.seats)
+    .map(circunscripcion);
+// Sin provincia elegida, el laboratorio usa una inventada de tamaño medio.
+const INVENTADA = { name: 'esta provincia', seats: 5, validos: 300000 };
+const laboratorio = 'Laboratorio con partidos inventados';
+const mueve =
+  'Mueve los porcentajes, que siempre suman el 100 %, o pulsa uno de los experimentos de abajo.';
+
+// Sin provincia elegida: cómo se reparten los escaños en general y el laboratorio.
+export function RepartoGeneral() {
+  return (
+    <section id="reparto" className="el-reparto" aria-labelledby="el-reparto-titulo">
+      <h2 id="el-reparto-titulo">Cómo se eligen los diputados</h2>
+      <Bloque
+        n="01"
+        titulo="El reparto, en cuatro pasos"
+        texto={<p>Elige tu provincia en el mapa o en el desplegable para verlo con sus datos.</p>}
+      >
+        <ol className="el-general">
+          <li>
+            Cada provincia elige a sus diputados por separado, con sus propios votos: 2 escaños por
+            ley y el resto según su población. Ceuta y Melilla eligen uno cada una, que se lleva la
+            candidatura más votada.
+          </li>
+          <li>
+            Las candidaturas que no llegan al 3 % de los votos válidos de la provincia, que incluyen
+            el voto en blanco, se quedan fuera del reparto.
+          </li>
+          <li>
+            Los votos de las demás se dividen entre 1, 2, 3… y los escaños van, uno a uno, a los
+            cocientes más altos: es el método D'Hondt (
+            <a className="enlace" href={loreg163}>
+              art. 163 de la LOREG
+            </a>
+            ).
+          </li>
+          <li>
+            Los diputados de las 52 circunscripciones forman el Congreso, de {SEATS} escaños: la
+            mayoría absoluta son 176.
+          </li>
+        </ol>
+      </Bloque>
+      <Laboratorio
+        n="02"
+        titulo={laboratorio}
+        texto={
+          <p>
+            Cuatro partidos ficticios, A, B, C y D, en una provincia inventada de {INVENTADA.seats}{' '}
+            escaños y {numero.format(INVENTADA.validos)} votos válidos. {mueve}
+          </p>
+        }
+        provincia={INVENTADA}
+        comparar={comparar([SORIA, MADRID])}
+      />
+    </section>
+  );
+}
 
 // Cómo se eligen los diputados de la provincia elegida: sus escaños, el reparto de 2023, los votos
 // que no eligieron a nadie y su peso en el Congreso.
@@ -82,31 +148,20 @@ export function Reparto({ p }: { p: Provincia }) {
       >
         <Hemiciclo p={p} />
       </Bloque>
-    </section>
-  );
-}
-
-function Bloque({
-  n,
-  titulo,
-  texto,
-  children,
-}: {
-  n: string;
-  titulo: string;
-  texto: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <section className="el-bloque" aria-labelledby={`el-bloque-${n}`}>
-      <div className="el-bloque-texto">
-        <span className="t-etiqueta">{n}</span>
-        <h3 id={`el-bloque-${n}`} className="t-titular-s">
-          {titulo}
-        </h3>
-        {texto}
-      </div>
-      <div>{children}</div>
+      <Laboratorio
+        key={p.id}
+        n="05"
+        titulo={laboratorio}
+        texto={
+          <p>
+            Cuatro partidos ficticios, A, B, C y D, con{' '}
+            {p.seats === 1 ? 'el escaño' : `los ${p.seats} escaños`} de {p.name} y la participación
+            de 2023: {numero.format(validos(p))} votos válidos. {mueve}
+          </p>
+        }
+        provincia={circunscripcion(p)}
+        comparar={comparar([SORIA, p.id, MADRID])}
+      />
     </section>
   );
 }

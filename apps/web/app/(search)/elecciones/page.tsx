@@ -16,7 +16,7 @@ import {
 } from '../../../lib/elecciones';
 import { EligeProvincia } from './elige-provincia';
 import { InfoDato } from './info-dato';
-import { Reparto } from './reparto';
+import { Reparto, RepartoGeneral } from './reparto';
 import { TablaProvincias } from './tabla-provincias';
 import './elecciones.css';
 
@@ -255,7 +255,7 @@ export default async function Elecciones({ searchParams }: Props) {
         />
       </details>
 
-      {provincia && <Reparto p={provincia} />}
+      {provincia ? <Reparto p={provincia} /> : <RepartoGeneral />}
 
       <div className="info-prosa">
         <h2>Cómo se reparten los escaños.</h2>
