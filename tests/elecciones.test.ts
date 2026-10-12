@@ -15,24 +15,29 @@ const ficha = (html: string) =>
   new DOMParser().parseFromString(html, 'text/html').getElementById('el-ficha')?.innerHTML ?? '';
 
 describe('?provincia= en /elecciones', () => {
-  it('abre la ficha de la provincia con sus cifras y sus fuentes oficiales', async () => {
-    const html = ficha(await pagina({ provincia: '42' }));
+  it('abre la ficha de la provincia con sus cifras, y la página cita las fuentes oficiales', async () => {
+    const pag = await pagina({ provincia: '42' });
+    const html = ficha(pag);
     expect(html).toContain('<h3 class="el-ficha-titulo">Soria</h3>');
     expect(html).toContain('<p class="chat-detail-figure">2</p>');
     expect(html).toContain('<p class="chat-detail-figure">90.234</p>');
     expect(html).toContain('<p class="chat-detail-figure">45.117</p>');
-    expect(html).toContain('Un 68 % menos que la media de España (140.327)');
+    expect(html).toContain('68 % menos que la media (140.327)');
+    expect(html).toContain('Los 2 que da la ley');
     expect(html).toContain('aria-label="Qué significa «Votos por escaño en 2023»"');
     expect(html).toContain('a candidaturas y en blanco, sin los nulos');
-    expect(html).toContain('https://www.boe.es/buscar/doc.php?id=BOE-A-2026-20742');
-    expect(html).toContain('https://www.boe.es/buscar/doc.php?id=BOE-A-2025-25362');
-    expect(html).toContain('https://infoelectoral.interior.gob.es/');
+    expect(pag).toContain('https://www.boe.es/buscar/doc.php?id=BOE-A-2026-20742');
+    expect(pag).toContain('https://www.boe.es/buscar/doc.php?id=BOE-A-2025-25362');
+    expect(pag).toContain('https://infoelectoral.interior.gob.es/');
   });
 
-  it('muestra el cambio de escaños frente a 2023 donde lo hay', async () => {
-    expect(ficha(await pagina({ provincia: '28' }))).toContain('1 más que en 2023.');
-    expect(ficha(await pagina({ provincia: '11' }))).toContain('1 menos que en 2023.');
-    expect(ficha(await pagina({ provincia: '42' }))).toContain('Los mismos que en 2023.');
+  it('muestra el cambio de escaños frente a 2023 y su reparto', async () => {
+    const madrid = ficha(await pagina({ provincia: '28' }));
+    expect(madrid).toContain('1 más que en 2023');
+    expect(madrid).toContain('2 por ley y 36 por población');
+    expect(ficha(await pagina({ provincia: '11' }))).toContain('1 menos que en 2023');
+    expect(ficha(await pagina({ provincia: '42' }))).toContain('igual que en 2023');
+    expect(ficha(await pagina({ provincia: '51' }))).toContain('Fijado por la ley');
   });
 
   it('ignora códigos que no son una circunscripción', async () => {

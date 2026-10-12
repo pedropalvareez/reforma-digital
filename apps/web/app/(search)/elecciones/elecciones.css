@@ -19,18 +19,42 @@
   background: color-mix(in srgb, var(--tinta) 90%, var(--blanco));
 }
 
+.info-pagina > .chat-question {
+  margin-bottom: var(--e-16);
+}
 .el-entradilla {
-  margin-bottom: var(--e-32);
+  max-width: 56ch;
+  margin-bottom: var(--e-40);
+}
+
+/* ─── Disposición ──────────────────────────────────────────────────────────── */
+
+/* Escritorio: mapa a la izquierda; desplegable y ficha a la derecha, a la altura del mapa. */
+.el-mapa {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'mapa elige'
+    'mapa ficha';
+  align-items: start;
+  gap: var(--e-24) var(--e-40);
+}
+.info-pagina .el-elige {
+  grid-area: elige;
+  display: grid;
+  gap: var(--e-8);
+  margin: 0;
+}
+.el-lienzo {
+  grid-area: mapa;
+}
+.el-ficha {
+  grid-area: ficha;
 }
 
 /* ─── Elegir provincia: el compositor del chat ─────────────────────────────── */
 
-.info-pagina .el-elige {
-  display: grid;
-  gap: var(--e-8);
-  max-width: 520px;
-  margin: 0 0 var(--e-40);
-}
 :is(.el-elige, .el-control) label {
   color: var(--tinta-2);
   font-size: 14px;
@@ -79,11 +103,12 @@
 
 /* ─── Mapa ─────────────────────────────────────────────────────────────────── */
 
-.el-contenido {
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  align-items: start;
-  gap: var(--e-40);
+.el-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--e-16) var(--e-24);
 }
 
 /* Control segmentado: la pastilla blanca se desliza a la vista elegida. Cada enlace mide 36 px a
@@ -136,11 +161,41 @@
   transform: scale(0.96);
 }
 
+/* Escala: cuatro tramos unidos en una barra redondeada, con los cortes centrados en cada unión. */
+.el-escala {
+  width: min(280px, 100%);
+}
+.el-escala p {
+  margin-bottom: var(--e-8);
+  color: var(--tinta-2);
+  font-size: 14px;
+  font-weight: 500;
+}
+.el-escala-barra {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--r-pildora);
+}
+.el-escala-cortes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 6px;
+  color: var(--tinta-3);
+  font-size: 14px;
+}
+.el-escala-cortes span {
+  justify-self: end;
+  transform: translateX(50%);
+}
+
 .el-svg {
   display: block;
   width: 100%;
   height: auto;
-  margin-top: var(--e-16);
+  margin-top: var(--e-24);
 }
 .el-capa {
   animation: el-fundido var(--t-medio) var(--curva-salida) both;
@@ -150,21 +205,18 @@
     opacity: 0;
   }
 }
+/* Las provincias se separan con blanco, como las rejillas de Sol, no con bordes de tinta. */
 .el-provincia :is(path, circle) {
-  stroke: var(--tinta);
+  stroke: var(--blanco);
   stroke-width: 1px;
+  transition: opacity var(--t-rapido) ease;
 }
 .el-provincia circle {
-  stroke-width: 0.6px;
-}
-.el-provincia [data-band='3'] {
-  stroke: var(--blanco);
+  stroke-width: 1.5px;
 }
 /* La provincia elegida, en amarillo de Sol, como la tarjeta destacada de la ficha. */
 .el-mapa .el-provincia[aria-current] :is(path, circle) {
   fill: var(--amarillo);
-  stroke: var(--tinta);
-  stroke-width: 2px;
 }
 .el-mapa .el-provincia[aria-current] .el-cifra {
   fill: var(--tinta);
@@ -173,26 +225,24 @@
   outline: 2px solid var(--foco);
   outline-offset: 2px;
 }
-.el-provincia:focus-visible :is(path, circle) {
-  stroke-width: 3px;
-}
 /* En la vista de escaños, la silueta de España sitúa los círculos. */
 .el-silueta {
   fill: var(--superficie);
-  stroke: var(--tinta-3);
-  stroke-width: 0.5px;
+  stroke: var(--blanco);
+  stroke-width: 1px;
   vector-effect: non-scaling-stroke;
 }
 .el-recuadro {
   fill: none;
-  stroke: var(--tinta-3);
+  stroke: var(--linea);
+  vector-effect: non-scaling-stroke;
 }
+/* Rótulos como .t-etiqueta; se agrandan en móvil para que el SVG reducido no baje de 12 px. */
 .el-rotulo {
-  fill: var(--tinta-2);
-  font-size: 14px;
-}
-.el-provincia .el-rotulo {
-  text-decoration: underline;
+  fill: var(--tinta-3);
+  font: 500 12px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 /* Sin el borde de la banda, que comparte data-band con el círculo. */
 .el-provincia .el-cifra {
@@ -208,32 +258,6 @@
 .el-mapa .el-cifra:is([data-band='2'], [data-band='3']) {
   fill: var(--blanco);
 }
-.el-leyenda-titulo {
-  margin-top: var(--e-16);
-  color: var(--tinta-2);
-  font-size: 14px;
-  font-weight: 500;
-}
-.el-leyenda {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-8) var(--e-20);
-  margin: var(--e-8) 0 0;
-  padding: 0;
-  list-style: none;
-  font-size: 14px;
-}
-.el-leyenda li {
-  display: flex;
-  align-items: center;
-  gap: var(--e-8);
-}
-.el-muestra {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  box-shadow: inset 0 0 0 1px var(--linea);
-}
 .el-credito {
   margin-top: var(--e-16);
   color: var(--tinta-3);
@@ -246,7 +270,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .el-provincia:hover :is(path, circle) {
-    stroke-width: 3px;
+    opacity: 0.75;
   }
   .el-vistas a:not([aria-current]):hover {
     color: var(--tinta);
@@ -266,14 +290,16 @@
   animation: chat-enter 420ms var(--curva-salida) both;
 }
 .el-ficha-resumen {
-  margin: var(--e-8) 0 var(--e-24);
+  margin: var(--e-8) 0 var(--e-20);
   color: var(--tinta-2);
   font-size: 15px;
   animation: chat-enter 360ms 60ms var(--curva-salida) both;
 }
-/* La rejilla es el bloque de referencia del globo de la «i», que ocupa todo su ancho. */
+/* La rejilla es el bloque de referencia del globo de la «i», que ocupa todo su ancho. Dos columnas
+   también en móvil, para que las cuatro cifras se vean juntas. */
 .el-ficha .chat-details {
   position: relative;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 /* Solo hacia atrás: al acabar, la tarjeta no conserva un transform que recortaría el globo. */
 .el-ficha .chat-detail {
@@ -294,12 +320,11 @@
 .el-ficha-texto {
   margin-top: var(--e-24);
   color: var(--tinta-2);
-}
-.el-ficha-texto.chat-enter {
-  animation-delay: 120ms;
+  font-size: 14px;
+  font-weight: 500;
 }
 .el-ejemplos.chat-followups {
-  margin-top: var(--e-16);
+  margin-top: var(--e-8);
 }
 
 .el-info-boton {
@@ -338,13 +363,12 @@
   }
 }
 
+/* ─── Fuentes ──────────────────────────────────────────────────────────────── */
+
 .el-fuentes {
   margin-top: var(--e-24);
 }
-.el-fuentes.chat-enter {
-  animation-delay: 150ms;
-}
-.el-fuentes h4 {
+.el-fuentes h3 {
   margin: 0 0 var(--e-8);
   color: var(--tinta-2);
   font-size: 13px;
@@ -432,24 +456,36 @@
 /* ─── Pantallas estrechas ──────────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
-  .el-contenido {
+  .el-mapa {
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--e-32);
+    grid-template-rows: auto;
+    grid-template-areas: 'elige' 'mapa' 'ficha';
+    gap: var(--e-24);
   }
 }
 @media (max-width: 640px) {
-  .info-pagina .el-elige,
   .el-control-buscar {
     max-width: none;
-  }
-  .el-control-buscar {
     flex-basis: 100%;
   }
   .el-vistas {
     display: grid;
+    width: 100%;
+  }
+  .el-escala {
+    width: 100%;
   }
   .el-rotulo {
-    font-size: 28px;
+    font-size: 24px;
+  }
+  .el-ficha .chat-details {
+    gap: var(--e-8);
+  }
+  .el-ficha .chat-detail {
+    --caja-pad: var(--e-16);
+  }
+  .el-ficha .chat-detail-figure {
+    font-size: 24px;
   }
   /* A este ancho la cifra quedaría por debajo de 14 px; los escaños siguen en la ficha y la tabla. */
   .el-cifra {
@@ -459,7 +495,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .el-vistas::before,
-  .el-tabla summary .icono {
+  .el-tabla summary .icono,
+  .el-provincia :is(path, circle) {
     transition: none;
   }
   .el-vistas a:active {

@@ -90,43 +90,39 @@ export default async function Elecciones({ searchParams }: Props) {
       <Question
         level={1}
         details={
-          <>
-            <QuestionDetail icon={<Icon name="calendario" size={16} />}>
-              Elecciones generales · 29 de noviembre de 2026
-            </QuestionDetail>
-            <QuestionDetail icon={<Icon name="protegido" size={16} />}>
-              Datos oficiales del BOE y del Ministerio del Interior
-            </QuestionDetail>
-          </>
+          <QuestionDetail icon={<Icon name="calendario" size={16} />}>
+            Generales del 29 de noviembre de 2026
+          </QuestionDetail>
         }
       >
         ¿Cuánto vale tu voto?
       </Question>
       <p className="info-entradilla el-entradilla">
-        El Congreso tiene {SEATS} escaños repartidos entre 52 circunscripciones. Elige tu provincia
-        para ver cuántos diputados elige, cuántos habitantes hay por escaño y por qué.
+        Cuántos diputados elige tu provincia y cuántas personas hay detrás de cada escaño, con datos
+        oficiales.
       </p>
 
-      <Form action={path} scroll={false} className="el-elige">
-        <label htmlFor="el-elige">Elige tu provincia</label>
-        <span className="el-elige-campo">
-          <Icon name="ubicacion" />
-          <EligeProvincia actual={provincia?.id} opciones={opciones} />
-          <Icon name="abajo" size={16} />
-        </span>
-        {escanos && <input type="hidden" name="vista" value="escanos" />}
-        {/* Sin JavaScript el cambio no envía el formulario. */}
-        <noscript>
-          <Button type="submit">Ver</Button>
-        </noscript>
-      </Form>
-
+      {/* Escritorio: el mapa a la izquierda y, a la derecha, el desplegable sobre la ficha.
+          Móvil: desplegable, mapa y ficha. */}
       <section className="el-mapa" aria-labelledby="el-mapa-titulo">
         <h2 id="el-mapa-titulo" className="sr-only">
           Mapa de circunscripciones
         </h2>
-        <div className="el-contenido">
-          <div className="el-lienzo caja-plana">
+        <Form action={path} scroll={false} className="el-elige">
+          <label htmlFor="el-elige">Elige tu provincia</label>
+          <span className="el-elige-campo">
+            <Icon name="ubicacion" />
+            <EligeProvincia actual={provincia?.id} opciones={opciones} />
+            <Icon name="abajo" size={16} />
+          </span>
+          {escanos && <input type="hidden" name="vista" value="escanos" />}
+          {/* Sin JavaScript el cambio no envía el formulario. */}
+          <noscript>
+            <Button type="submit">Ver</Button>
+          </noscript>
+        </Form>
+        <div className="el-lienzo caja-plana">
+          <div className="el-barra">
             <nav className="el-vistas" aria-label="Vista del mapa">
               <Link
                 href={href(provincia?.id, false)}
@@ -143,77 +139,64 @@ export default async function Elecciones({ searchParams }: Props) {
                 Por escaños
               </Link>
             </nav>
-            <svg
-              className="el-svg"
-              viewBox="0 0 600 520"
-              role="group"
-              aria-labelledby="el-svg-titulo el-svg-descripcion"
-            >
-              <title id="el-svg-titulo">
-                {escanos ? 'Provincias según sus escaños' : 'Mapa de provincias'}
-              </title>
-              <desc id="el-svg-descripcion">
-                {escanos
-                  ? 'Cada círculo es una provincia, sobre su lugar en el mapa, y su área es proporcional a los escaños que elige.'
-                  : 'Canarias está representada en un recuadro separado.'}{' '}
-                El tono indica los habitantes por escaño. También puedes elegirla en el desplegable
-                o en la tabla de datos.
-              </desc>
-              <rect className="el-recuadro" {...recuadroCanarias} />
-              <text className="el-rotulo" x="12" y="420" aria-hidden="true">
-                Canarias
-              </text>
-              {/* Cambiar de vista vuelve a montar la capa, que entra con un fundido. */}
-              <g key={escanos ? 'escanos' : 'mapa'} className="el-capa">
-                {escanos && (
-                  <path
-                    className="el-silueta"
-                    d={provincias.map((p) => p.path).join('')}
-                    fillRule="evenodd"
-                    aria-hidden="true"
-                  />
-                )}
-                {provincias.map((p) => (
-                  <Link
-                    key={p.id}
-                    href={href(p.id, escanos)}
-                    scroll={false}
-                    className="el-provincia"
-                    aria-label={`${p.name}: ${escanosDe(p.seats)}`}
-                    aria-current={provincia?.id === p.id ? 'true' : undefined}
-                  >
-                    <title>{`${p.name}: ${escanosDe(p.seats)}`}</title>
-                    {escanos ? <Circulo p={p} /> : <Silueta p={p} />}
-                  </Link>
-                ))}
-              </g>
-            </svg>
-            <p id="el-leyenda-titulo" className="el-leyenda-titulo">
-              Habitantes por escaño
-            </p>
-            <ul className="el-leyenda" aria-labelledby="el-leyenda-titulo">
-              {bands.map((b, i) => (
-                <li key={b.label}>
-                  <span className="el-muestra" data-band={i} aria-hidden="true" />
-                  {b.label}
-                </li>
+            <Escala />
+          </div>
+          <svg
+            className="el-svg"
+            viewBox="0 0 600 520"
+            role="group"
+            aria-labelledby="el-svg-titulo el-svg-descripcion"
+          >
+            <title id="el-svg-titulo">
+              {escanos ? 'Provincias según sus escaños' : 'Mapa de provincias'}
+            </title>
+            <desc id="el-svg-descripcion">
+              {escanos
+                ? 'Cada círculo es una provincia, sobre su lugar en el mapa, y su área es proporcional a los escaños que elige.'
+                : 'Canarias está representada en un recuadro separado.'}{' '}
+              El tono indica los habitantes por escaño. También puedes elegirla en el desplegable o
+              en la tabla de datos.
+            </desc>
+            <rect className="el-recuadro" rx="12" {...recuadroCanarias} />
+            <text className="el-rotulo" x="12" y="420" aria-hidden="true">
+              Canarias
+            </text>
+            {/* Cambiar de vista vuelve a montar la capa, que entra con un fundido. */}
+            <g key={escanos ? 'escanos' : 'mapa'} className="el-capa">
+              {escanos && (
+                <path
+                  className="el-silueta"
+                  d={provincias.map((p) => p.path).join('')}
+                  fillRule="evenodd"
+                  aria-hidden="true"
+                />
+              )}
+              {provincias.map((p) => (
+                <Link
+                  key={p.id}
+                  href={href(p.id, escanos)}
+                  scroll={false}
+                  className="el-provincia"
+                  aria-label={`${p.name}: ${escanosDe(p.seats)}`}
+                  aria-current={provincia?.id === p.id ? 'true' : undefined}
+                >
+                  <title>{`${p.name}: ${escanosDe(p.seats)}`}</title>
+                  {escanos ? <Circulo p={p} /> : <Silueta p={p} />}
+                </Link>
               ))}
-            </ul>
-            <p className="el-credito">
-              Cartografía: Instituto Geográfico Nacional, vía{' '}
-              <a href="https://www.geoboundaries.org/">geoBoundaries</a>.{' '}
-              <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Geometría
-              simplificada y adaptada.
-            </p>
-          </div>
-
-          <div id="el-ficha" className="el-ficha" aria-live="polite" aria-atomic>
-            {provincia ? (
-              <Ficha key={provincia.id} p={provincia} />
-            ) : (
-              <SinProvincia href={(id) => href(id, escanos)} />
-            )}
-          </div>
+            </g>
+          </svg>
+          <p className="el-credito">
+            Cartografía: IGN vía <a href="https://www.geoboundaries.org/">geoBoundaries</a> (
+            <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>), simplificada.
+          </p>
+        </div>
+        <div id="el-ficha" className="el-ficha" aria-live="polite" aria-atomic>
+          {provincia ? (
+            <Ficha key={provincia.id} p={provincia} />
+          ) : (
+            <SinProvincia href={(id) => href(id, escanos)} />
+          )}
         </div>
       </section>
 
@@ -241,28 +224,37 @@ export default async function Elecciones({ searchParams }: Props) {
       <div className="info-prosa">
         <h2>Cómo se reparten los escaños.</h2>
         <p>
-          La ley electoral da dos escaños a cada provincia y uno a Ceuta y otro a Melilla. Los 248
-          restantes se reparten según la población de cada provincia (
+          Cada provincia tiene 2 escaños por ley, y Ceuta y Melilla, 1. Los 248 restantes se
+          reparten según la población (
           <a className="enlace" href={fuentes.loreg}>
             art. 162 de la LOREG
           </a>
-          ). Por eso el número de habitantes por escaño cambia de una provincia a otra.
+          ), así que los habitantes por escaño cambian de una provincia a otra.
         </p>
-        <p>
-          Escaños:{' '}
-          <a className="enlace" href={fuentes.escanos}>
-            Real Decreto 806/2026
-          </a>
-          . Población a 1 de enero de 2025:{' '}
-          <a className="enlace" href={fuentes.poblacion}>
-            Real Decreto 1117/2025
-          </a>
-          . Resultados de 2023:{' '}
-          <a className="enlace" href={fuentes.resultados2023}>
-            Ministerio del Interior
-          </a>
-          .
-        </p>
+        <section className="el-fuentes" aria-labelledby="el-fuentes-titulo">
+          <h3 id="el-fuentes-titulo">Fuentes oficiales</h3>
+          <dl className="chat-source-meta">
+            {[
+              { dato: 'Escaños', href: fuentes.escanos, texto: 'Real Decreto 806/2026' },
+              { dato: 'Población', href: fuentes.poblacion, texto: 'Real Decreto 1117/2025' },
+              {
+                dato: 'Resultados de 2023',
+                href: fuentes.resultados2023,
+                texto: 'Ministerio del Interior',
+              },
+            ].map((f) => (
+              <div key={f.href}>
+                <dt>{f.dato}</dt>
+                <dd>
+                  <a className="enlace" href={f.href}>
+                    {f.texto}
+                    <Icon name="arrowUpRight" size={12} />
+                  </a>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
       </div>
     </InfoPage>
   );
@@ -313,6 +305,31 @@ function Silueta({ p }: { p: Provincia }) {
   );
 }
 
+// Leyenda como escala: cuatro tramos seguidos con los cortes debajo. La lista oculta da los tramos
+// completos a los lectores de pantalla.
+function Escala() {
+  return (
+    <div className="el-escala">
+      <p id="el-leyenda-titulo">Habitantes por escaño</p>
+      <ul className="sr-only" aria-labelledby="el-leyenda-titulo">
+        {bands.map((b) => (
+          <li key={b.label}>{b.label}</li>
+        ))}
+      </ul>
+      <div className="el-escala-barra" aria-hidden="true">
+        {bands.map((b, i) => (
+          <span key={b.label} data-band={i} />
+        ))}
+      </div>
+      <div className="el-escala-cortes t-dato" aria-hidden="true">
+        {bands.slice(0, -1).map((b) => (
+          <span key={b.max}>{numero.format(b.max)}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SinProvincia({ href }: { href: (id: string) => string }) {
   return (
     <>
@@ -320,13 +337,13 @@ function SinProvincia({ href }: { href: (id: string) => string }) {
       <p className="el-ficha-resumen">{SEATS} escaños · 52 circunscripciones</p>
       <DetailGrid>
         <DetailCard label="Escaños" figure={String(SEATS)}>
-          Dos por provincia y el resto según la población.
+          2 por provincia y el resto por población
         </DetailCard>
         <DetailCard label="Habitantes por escaño" figure={numero.format(averagePerSeat)} highlight>
-          Media de toda España.
+          Media de España
         </DetailCard>
       </DetailGrid>
-      <p className="el-ficha-texto">Elige una provincia en el mapa o prueba con una de estas:</p>
+      <p className="el-ficha-texto">Prueba con</p>
       <div className="chat-followups el-ejemplos">
         {ejemplos.map((p, i) => (
           <Link
@@ -352,21 +369,26 @@ function Ficha({ p }: { p: Provincia }) {
     <>
       <h3 className="el-ficha-titulo">{p.name}</h3>
       <p className="el-ficha-resumen">
-        {p.seats} de los {SEATS} escaños del Congreso
+        {p.seats} de {SEATS} escaños ·{' '}
+        {diferencia === 0
+          ? 'igual que en 2023'
+          : `${Math.abs(diferencia)} ${diferencia > 0 ? 'más' : 'menos'} que en 2023`}
       </p>
       <DetailGrid>
         <DetailCard
           label={
             <InfoDato
               titulo="Escaños en 2026"
-              ayuda="Diputados que elige esta provincia en el Congreso el 29 de noviembre de 2026. Los fija el Real Decreto 806/2026 según la población."
+              ayuda="Diputados que elige esta provincia en el Congreso el 29 de noviembre de 2026. La ley da 2 a cada provincia (1 a Ceuta y a Melilla) y reparte el resto según la población; los fija el Real Decreto 806/2026."
             />
           }
           figure={String(p.seats)}
         >
-          {diferencia === 0
-            ? 'Los mismos que en 2023.'
-            : `${Math.abs(diferencia)} ${diferencia > 0 ? 'más' : 'menos'} que en 2023.`}
+          {p.seats === 1
+            ? 'Fijado por la ley'
+            : p.seats === 2
+              ? 'Los 2 que da la ley'
+              : `2 por ley y ${p.seats - 2} por población`}
         </DetailCard>
         <DetailCard
           label={
@@ -379,9 +401,9 @@ function Ficha({ p }: { p: Provincia }) {
           highlight
         >
           {media === 0
-            ? 'Igual que la media de España'
-            : `Un ${Math.abs(media)} % ${media > 0 ? 'más' : 'menos'} que la media de España`}{' '}
-          ({numero.format(averagePerSeat)}).
+            ? 'Igual que la media'
+            : `${Math.abs(media)} % ${media > 0 ? 'más' : 'menos'} que la media`}{' '}
+          ({numero.format(averagePerSeat)})
         </DetailCard>
         <DetailCard
           label={
@@ -392,7 +414,7 @@ function Ficha({ p }: { p: Provincia }) {
           }
           figure={numero.format(p.population)}
         >
-          Empadronados el 1 de enero de 2025.
+          A 1 de enero de 2025
         </DetailCard>
         <DetailCard
           label={
@@ -403,43 +425,9 @@ function Ficha({ p }: { p: Provincia }) {
           }
           figure={numero.format(p.validVotesPerSeat2023)}
         >
-          Votos válidos en las generales de julio.
+          Votos válidos, sin nulos
         </DetailCard>
       </DetailGrid>
-      <p className="el-ficha-texto chat-enter">
-        {p.seats === 1
-          ? `${p.name} elige un único escaño, fijado por la ley.`
-          : p.seats === 2
-            ? 'Tiene los 2 escaños que la ley da a cada provincia; por población no le corresponde ninguno más.'
-            : `Tiene los 2 escaños que la ley da a cada provincia y ${p.seats - 2} más por su población.`}{' '}
-        <a className="enlace" href={fuentes.loreg}>
-          Art. 162 de la LOREG
-        </a>
-      </p>
-      <section className="el-fuentes chat-enter" aria-labelledby="el-fuentes-titulo">
-        <h4 id="el-fuentes-titulo">Fuentes oficiales</h4>
-        <dl className="chat-source-meta">
-          {[
-            { dato: 'Escaños', href: fuentes.escanos, texto: 'Real Decreto 806/2026' },
-            { dato: 'Población', href: fuentes.poblacion, texto: 'Real Decreto 1117/2025' },
-            {
-              dato: 'Resultados de 2023',
-              href: fuentes.resultados2023,
-              texto: 'Ministerio del Interior',
-            },
-          ].map((f) => (
-            <div key={f.href}>
-              <dt>{f.dato}</dt>
-              <dd>
-                <a className="enlace" href={f.href}>
-                  {f.texto}
-                  <Icon name="arrowUpRight" size={12} />
-                </a>
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </section>
     </>
   );
 }
