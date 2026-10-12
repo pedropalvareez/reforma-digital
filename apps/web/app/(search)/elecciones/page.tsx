@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import Form from 'next/form';
 import Link from 'next/link';
 import { IconChevronDownOutline18 } from 'nucleo-ui-essential-outline-18';
-import { PaginaInformativa } from '../../../components/sol/pagina-informativa';
+import { InfoPage } from '../../../components/sol/info-page';
 import {
   averagePerSeat,
   bands,
@@ -62,7 +62,7 @@ export default async function Elecciones({ searchParams }: Props) {
   };
 
   return (
-    <PaginaInformativa>
+    <InfoPage>
       <span className="t-etiqueta info-etiqueta">
         Elecciones generales · 29 de noviembre de 2026
       </span>
@@ -279,7 +279,7 @@ export default async function Elecciones({ searchParams }: Props) {
           .
         </p>
       </div>
-    </PaginaInformativa>
+    </InfoPage>
   );
 }
 

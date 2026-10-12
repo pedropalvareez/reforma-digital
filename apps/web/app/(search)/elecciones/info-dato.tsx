@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
-import { Icono } from '../../../components/sol/icono';
+import { Icon } from '../../../components/sol/icon';
 
 // Etiqueta de un dato con su explicación: se abre al pasar el ratón por la «i», al enfocarla con
 // teclado o al tocarla en móvil, y se cierra al salir de la etiqueta y del texto, con Esc o tocando
@@ -40,7 +40,7 @@ export function InfoDato({ titulo, ayuda }: { titulo: string; ayuda: string }) {
         onFocus={() => setAbierto(true)}
         onBlur={() => setAbierto(false)}
       >
-        <Icono n="info" size={16} />
+        <Icon name="info" size={16} />
       </button>
       {/* El hueco hasta la caja es parte del globo: el ratón puede bajar sin que se cierre. */}
       <span id={id} role="tooltip" className="el-info" hidden={!abierto}>
