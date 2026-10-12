@@ -9,7 +9,7 @@ import { Icon } from '../../../components/sol/icon';
 export function InfoDato({ titulo, ayuda }: { titulo: string; ayuda: string }) {
   const [abierto, setAbierto] = useState(false);
   const id = useId();
-  const raiz = useRef<HTMLElement>(null);
+  const raiz = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (!abierto) return;
@@ -28,7 +28,7 @@ export function InfoDato({ titulo, ayuda }: { titulo: string; ayuda: string }) {
   }, [abierto]);
 
   return (
-    <dt ref={raiz} onMouseLeave={() => setAbierto(false)}>
+    <span ref={raiz} className="el-dato" onMouseLeave={() => setAbierto(false)}>
       {titulo}
       <button
         type="button"
@@ -42,10 +42,11 @@ export function InfoDato({ titulo, ayuda }: { titulo: string; ayuda: string }) {
       >
         <Icon name="info" size={16} />
       </button>
-      {/* El hueco hasta la caja es parte del globo: el ratón puede bajar sin que se cierre. */}
+      {/* Ocupa el ancho de toda la rejilla de datos, justo bajo la etiqueta; el hueco hasta la
+          caja es parte del globo para que el ratón pueda bajar sin que se cierre. */}
       <span id={id} role="tooltip" className="el-info" hidden={!abierto}>
         <span className="caja-flota">{ayuda}</span>
       </span>
-    </dt>
+    </span>
   );
 }

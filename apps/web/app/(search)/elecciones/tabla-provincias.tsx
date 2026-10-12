@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { IconChevronDownOutline18 } from 'nucleo-ui-essential-outline-18';
 import { useState } from 'react';
+import { Field } from '@reforma-digital/design/sol';
+import { Icon } from '../../../components/sol/icon';
 
 type Fila = {
   href: string;
@@ -49,14 +50,26 @@ export function TablaProvincias({ items }: { items: Fila[] }) {
   return (
     <>
       <div className="el-controles">
-        <label>
-          Buscar tu provincia
-          <input type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
-        </label>
-        <label>
-          Ordenar por
+        <div className="el-control el-control-buscar">
+          <label htmlFor="el-buscar">Buscar tu provincia</label>
+          <span className="el-con-icono">
+            <Icon name="buscar" size={16} />
+            <Field
+              id="el-buscar"
+              type="search"
+              placeholder="Por ejemplo, Ávila"
+              autoComplete="off"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+          </span>
+        </div>
+        <div className="el-control">
+          <label htmlFor="el-orden">Ordenar por</label>
           <span className="el-desplegable">
             <select
+              id="el-orden"
+              className="campo"
               value={orden.valor}
               onChange={(e) =>
                 setOrden(ordenes.find((o) => o.valor === e.target.value) ?? ordenes[0])
@@ -68,9 +81,9 @@ export function TablaProvincias({ items }: { items: Fila[] }) {
                 </option>
               ))}
             </select>
-            <IconChevronDownOutline18 size={16} className="icono" aria-hidden />
+            <Icon name="abajo" size={16} />
           </span>
-        </label>
+        </div>
       </div>
       <p className="el-recuento" role="status">
         {busqueda &&

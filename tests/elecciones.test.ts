@@ -17,11 +17,11 @@ const ficha = (html: string) =>
 describe('?provincia= en /elecciones', () => {
   it('abre la ficha de la provincia con sus cifras y sus fuentes oficiales', async () => {
     const html = ficha(await pagina({ provincia: '42' }));
-    expect(html).toContain('<h3>Soria</h3>');
-    expect(html).toContain('<strong class="t-dato">2</strong>');
-    expect(html).toContain('<strong class="t-dato">90.234</strong>');
-    expect(html).toContain('<strong class="t-dato">45.117</strong>');
-    expect(html).toContain('un 68 % menos que la media de España (140.327)');
+    expect(html).toContain('<h3 class="el-ficha-titulo">Soria</h3>');
+    expect(html).toContain('<p class="chat-detail-figure">2</p>');
+    expect(html).toContain('<p class="chat-detail-figure">90.234</p>');
+    expect(html).toContain('<p class="chat-detail-figure">45.117</p>');
+    expect(html).toContain('Un 68 % menos que la media de España (140.327)');
     expect(html).toContain('aria-label="Qué significa «Votos por escaño en 2023»"');
     expect(html).toContain('a candidaturas y en blanco, sin los nulos');
     expect(html).toContain('https://www.boe.es/buscar/doc.php?id=BOE-A-2026-20742');
@@ -30,22 +30,29 @@ describe('?provincia= en /elecciones', () => {
   });
 
   it('muestra el cambio de escaños frente a 2023 donde lo hay', async () => {
-    expect(ficha(await pagina({ provincia: '28' }))).toContain('(1 más que en 2023)');
-    expect(ficha(await pagina({ provincia: '11' }))).toContain('(1 menos que en 2023)');
-    expect(ficha(await pagina({ provincia: '42' }))).not.toContain('que en 2023)');
+    expect(ficha(await pagina({ provincia: '28' }))).toContain('1 más que en 2023.');
+    expect(ficha(await pagina({ provincia: '11' }))).toContain('1 menos que en 2023.');
+    expect(ficha(await pagina({ provincia: '42' }))).toContain('Los mismos que en 2023.');
   });
 
   it('ignora códigos que no son una circunscripción', async () => {
     for (const provincia of ['99', '', ['42', '28']]) {
-      expect(ficha(await pagina({ provincia }))).not.toContain('<h3>');
+      const html = ficha(await pagina({ provincia }));
+      expect(html).toContain('<p class="el-ficha-titulo">España</p>');
+      expect(html).not.toContain('<h3 class="el-ficha-titulo">');
     }
   });
 
   it('enlaza la imagen OG de la provincia elegida', async () => {
-    const og = async (provincia: string) =>
-      (await generateMetadata({ searchParams: Promise.resolve({ provincia }) })).openGraph?.images;
+    const og = async (provincia: string) => {
+      const images = (await generateMetadata({ searchParams: Promise.resolve({ provincia }) }))
+        .openGraph?.images;
+      return (Array.isArray(images) ? images : [images]).map((i) =>
+        typeof i === 'object' && i && 'url' in i ? String(i.url) : String(i),
+      );
+    };
     expect(await og('52')).toEqual(['/elecciones/og/52']);
-    expect(await og('99')).toEqual(['/og.png']);
+    expect(await og('99')).toEqual(['/og/portada.jpg']);
   });
 
   it('elige provincia en el desplegable o en la tabla sin perder la vista', async () => {
@@ -195,7 +202,7 @@ it('la «i» se abre al pasar el ratón, al tocarla o con teclado, y se cierra a
     expect(abierto()).toBe(true);
     await act(async () =>
       container
-        .querySelector('dt')!
+        .querySelector('.el-dato')!
         .dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: document.body })),
     );
     expect(abierto()).toBe(false);

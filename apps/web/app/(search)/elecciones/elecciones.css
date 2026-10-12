@@ -1,3 +1,6 @@
+/* «¿Cuánto vale tu voto?». La cabecera y la ficha siguen al chat (pregunta como titular, tarjetas
+   de datos de sol/chat.css); el mapa va en una .caja-plana. */
+
 /* Tonos neutros por habitantes por escaño: sin colores que recuerden a un partido. */
 .el-mapa [data-band='0'] {
   fill: color-mix(in srgb, var(--tinta) 12%, var(--blanco));
@@ -15,61 +18,137 @@
   fill: color-mix(in srgb, var(--tinta) 90%, var(--blanco));
   background: color-mix(in srgb, var(--tinta) 90%, var(--blanco));
 }
-.el-barra {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--e-16);
-  margin-bottom: var(--e-24);
+
+.el-entradilla {
+  margin-bottom: var(--e-32);
 }
-.el-barra form:has(select) {
-  margin: 0;
+
+/* ─── Elegir provincia: el compositor del chat ─────────────────────────────── */
+
+.info-pagina .el-elige {
+  display: grid;
+  gap: var(--e-8);
+  max-width: 520px;
+  margin: 0 0 var(--e-40);
 }
-/* Flecha propia en vez de la nativa, que no se separa del borde con el relleno. */
-.el-desplegable {
+:is(.el-elige, .el-control) label {
+  color: var(--tinta-2);
+  font-size: 14px;
+  font-weight: 500;
+}
+/* Iconos sobre el campo; la flecha nativa no se separa del borde con el relleno. */
+:is(.el-elige-campo, .el-desplegable, .el-con-icono) {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
 }
-.el-desplegable select {
-  appearance: none;
-  padding-right: 44px;
-}
-.el-desplegable .icono {
+:is(.el-elige-campo, .el-desplegable, .el-con-icono) .icono {
   position: absolute;
-  right: var(--e-16);
   pointer-events: none;
 }
-.el-vistas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-8);
-}
-.el-vistas a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding-inline: var(--e-16);
+.el-elige-campo select {
+  width: 100%;
+  min-height: 60px;
+  padding: 0 52px;
+  appearance: none;
   border: 1px solid var(--linea);
   border-radius: var(--r-pildora);
   background: var(--blanco);
+  box-shadow: var(--sombra-suave);
+  color: var(--tinta);
+  font-size: 17px;
+  cursor: pointer;
 }
-.el-vistas a[aria-current] {
+.el-elige-campo select:focus {
   border-color: var(--tinta);
-  background: var(--tinta);
-  color: var(--blanco);
 }
+/* Sin provincia, el texto de la opción vacía se lee como un ejemplo. */
+.el-elige-campo select:invalid {
+  color: var(--tinta-3);
+}
+.el-elige-campo option {
+  color: var(--tinta);
+}
+.el-elige-campo .icono:first-child {
+  left: 22px;
+  color: var(--tinta-3);
+}
+.el-elige-campo .icono:last-child {
+  right: 26px;
+}
+
+/* ─── Mapa ─────────────────────────────────────────────────────────────────── */
+
 .el-contenido {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   align-items: start;
-  gap: var(--e-32);
+  gap: var(--e-40);
 }
+
+/* Control segmentado: la pastilla blanca se desliza a la vista elegida. Cada enlace mide 36 px a
+   la vista y 44 de área táctil. */
+.el-vistas {
+  position: relative;
+  display: inline-grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  padding: var(--e-4);
+  border-radius: var(--r-pildora);
+  background: var(--superficie);
+}
+.el-vistas::before {
+  content: '';
+  position: absolute;
+  inset: var(--e-4) auto var(--e-4) var(--e-4);
+  width: calc(50% - var(--e-4));
+  border-radius: var(--r-pildora);
+  background: var(--blanco);
+  box-shadow: var(--sombra-suave);
+  transition: transform 240ms var(--curva-cajon);
+}
+.el-vistas:has(a:last-child[aria-current])::before {
+  transform: translateX(100%);
+}
+.el-vistas a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding-inline: var(--e-16);
+  border-radius: var(--r-pildora);
+  color: var(--tinta-2);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: transform var(--t-rapido) var(--curva-salida);
+}
+.el-vistas a::after {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
+}
+.el-vistas a[aria-current] {
+  color: var(--tinta);
+}
+.el-vistas a:active {
+  transform: scale(0.96);
+}
+
 .el-svg {
   display: block;
   width: 100%;
   height: auto;
+  margin-top: var(--e-16);
+}
+.el-capa {
+  animation: el-fundido var(--t-medio) var(--curva-salida) both;
+}
+@keyframes el-fundido {
+  from {
+    opacity: 0;
+  }
 }
 .el-provincia :is(path, circle) {
   stroke: var(--tinta);
@@ -81,7 +160,7 @@
 .el-provincia [data-band='3'] {
   stroke: var(--blanco);
 }
-/* La provincia elegida, en amarillo de Sol: también la nombra la ficha. */
+/* La provincia elegida, en amarillo de Sol, como la tarjeta destacada de la ficha. */
 .el-mapa .el-provincia[aria-current] :is(path, circle) {
   fill: var(--amarillo);
   stroke: var(--tinta);
@@ -91,20 +170,15 @@
   fill: var(--tinta);
 }
 .el-provincia:focus-visible {
-  outline: 3px solid var(--foco);
+  outline: 2px solid var(--foco);
   outline-offset: 2px;
 }
 .el-provincia:focus-visible :is(path, circle) {
   stroke-width: 3px;
 }
-@media (hover: hover) and (pointer: fine) {
-  .el-provincia:hover :is(path, circle) {
-    stroke-width: 3px;
-  }
-}
 /* En la vista de escaños, la silueta de España sitúa los círculos. */
 .el-silueta {
-  fill: var(--blanco);
+  fill: var(--superficie);
   stroke: var(--tinta-3);
   stroke-width: 0.5px;
   vector-effect: non-scaling-stroke;
@@ -138,11 +212,12 @@
   margin-top: var(--e-16);
   color: var(--tinta-2);
   font-size: 14px;
+  font-weight: 500;
 }
 .el-leyenda {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--e-12) var(--e-24);
+  gap: var(--e-8) var(--e-20);
   margin: var(--e-8) 0 0;
   padding: 0;
   list-style: none;
@@ -154,102 +229,225 @@
   gap: var(--e-8);
 }
 .el-muestra {
-  width: 20px;
-  height: 20px;
-  border: 1px solid var(--tinta-3);
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--linea);
 }
 .el-credito {
   margin-top: var(--e-16);
-  color: var(--tinta-2);
+  color: var(--tinta-3);
   font-size: 14px;
 }
-.el-mapa a:not(.el-provincia, .el-vistas a) {
+.el-credito a {
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
-.el-ficha {
-  padding: var(--e-24);
-  border-radius: var(--r-20);
-  background: var(--blanco);
+
+@media (hover: hover) and (pointer: fine) {
+  .el-provincia:hover :is(path, circle) {
+    stroke-width: 3px;
+  }
+  .el-vistas a:not([aria-current]):hover {
+    color: var(--tinta);
+  }
 }
-.el-ficha h3 {
-  margin-bottom: var(--e-16);
-  font: 400 30px/1.2 var(--font-titular);
-}
-.el-ficha dl {
-  display: grid;
-  gap: var(--e-16);
+
+/* ─── Ficha ────────────────────────────────────────────────────────────────── */
+
+/* El nombre entra como la pregunta del chat; cambiar de provincia vuelve a montar la ficha. */
+.el-ficha-titulo {
   margin: 0;
+  font-family: var(--font-texto);
+  font-size: clamp(32px, 3.4vw, 44px);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  animation: chat-enter 420ms var(--curva-salida) both;
 }
-/* La explicación se abre bajo la etiqueta, con el ancho de la ficha. */
-.el-ficha dt {
+.el-ficha-resumen {
+  margin: var(--e-8) 0 var(--e-24);
+  color: var(--tinta-2);
+  font-size: 15px;
+  animation: chat-enter 360ms 60ms var(--curva-salida) both;
+}
+/* La rejilla es el bloque de referencia del globo de la «i», que ocupa todo su ancho. */
+.el-ficha .chat-details {
   position: relative;
-  display: flex;
-  align-items: center;
+}
+/* Solo hacia atrás: al acabar, la tarjeta no conserva un transform que recortaría el globo. */
+.el-ficha .chat-detail {
+  animation-fill-mode: backwards;
+}
+.el-ficha .chat-detail:nth-child(2) {
+  animation-delay: 30ms;
+}
+.el-ficha .chat-detail:nth-child(3) {
+  animation-delay: 60ms;
+}
+.el-ficha .chat-detail:nth-child(4) {
+  animation-delay: 90ms;
+}
+.el-ficha .chat-detail-figure {
+  font-size: clamp(28px, 2.6vw, 34px);
+}
+.el-ficha-texto {
+  margin-top: var(--e-24);
   color: var(--tinta-2);
-  font-size: 14px;
 }
-.el-ficha dd {
-  margin: 0;
+.el-ficha-texto.chat-enter {
+  animation-delay: 120ms;
 }
-/* Área táctil de 44 px sin alargar la línea de la etiqueta. */
+.el-ejemplos.chat-followups {
+  margin-top: var(--e-16);
+}
+
 .el-info-boton {
-  margin-block: -12px;
-  color: var(--tinta-2);
+  width: 36px;
+  height: 36px;
+  margin: -10px -8px -10px -4px;
+  vertical-align: middle;
 }
 .el-info {
   position: absolute;
-  z-index: 2;
-  top: 100%;
+  z-index: 3;
   left: 0;
   right: 0;
+  display: block;
   padding-top: var(--e-8);
   color: var(--tinta);
   font-size: 15px;
+  font-weight: 400;
   line-height: 1.5;
+  text-wrap: pretty;
+}
+.el-info[hidden] {
+  display: none;
 }
 .el-info > span {
   display: block;
   padding: var(--e-16);
   border-radius: var(--r-16);
+  transform-origin: top center;
+  animation: el-globo 160ms var(--curva-salida) both;
 }
-.el-ficha strong {
-  margin-right: var(--e-4);
-  font-size: 22px;
-  font-weight: 500;
+@keyframes el-globo {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
 }
-.el-ficha .el-fuentes {
-  font-size: 14px;
+
+.el-fuentes {
+  margin-top: var(--e-24);
 }
-.el-ficha > p {
-  margin-top: var(--e-16);
+.el-fuentes.chat-enter {
+  animation-delay: 150ms;
+}
+.el-fuentes h4 {
+  margin: 0 0 var(--e-8);
   color: var(--tinta-2);
+  font-size: 13px;
+  font-weight: 400;
+}
+.el-fuentes .chat-source-meta {
+  margin: 0;
+}
+.el-fuentes a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-4);
+}
+
+/* ─── Tabla ────────────────────────────────────────────────────────────────── */
+
+.el-tabla {
+  margin-top: var(--e-48);
+  border-block: 1px solid var(--linea);
 }
 .el-tabla summary {
-  display: list-item;
-  min-height: 44px;
-  padding-block: var(--e-8);
+  display: flex;
+  align-items: center;
+  gap: var(--e-12);
+  min-height: 64px;
   font-size: 18px;
   font-weight: 500;
+  list-style: none;
   cursor: pointer;
 }
-.el-tabla summary:focus-visible {
-  outline: 3px solid var(--foco);
-  outline-offset: 2px;
+.el-tabla summary::-webkit-details-marker {
+  display: none;
 }
-.el-tabla[open] summary {
-  margin-bottom: var(--e-16);
+.el-tabla summary .icono {
+  transition: transform var(--t-medio) var(--curva-salida);
 }
-@media (max-width: 800px) {
+.el-tabla[open] summary .icono {
+  transform: rotate(90deg);
+}
+.el-tabla-contenido {
+  padding-bottom: var(--e-24);
+  animation: chat-enter 360ms var(--curva-salida) both;
+}
+.el-controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--e-16);
+}
+.el-control {
+  display: grid;
+  gap: var(--e-8);
+}
+.el-control-buscar {
+  flex: 1 1 260px;
+  max-width: 360px;
+}
+.el-con-icono .campo {
+  width: 100%;
+  padding-left: 40px;
+}
+.el-con-icono .icono {
+  left: 14px;
+  color: var(--tinta-3);
+}
+/* El aspa nativa de Chrome y Safari es azul; borrar el texto basta para ver todas. */
+.el-con-icono .campo::-webkit-search-cancel-button {
+  appearance: none;
+}
+.el-desplegable .campo {
+  padding-right: 40px;
+  appearance: none;
+  cursor: pointer;
+}
+.el-desplegable .icono {
+  right: 16px;
+}
+.el-recuento {
+  min-height: 1.5em;
+  margin-top: var(--e-12);
+  color: var(--tinta-2);
+  font-size: 14px;
+}
+
+/* ─── Pantallas estrechas ──────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
   .el-contenido {
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--e-24);
-  }
-  .el-ficha {
-    padding: var(--e-16);
+    gap: var(--e-32);
   }
 }
 @media (max-width: 640px) {
+  .info-pagina .el-elige,
+  .el-control-buscar {
+    max-width: none;
+  }
+  .el-control-buscar {
+    flex-basis: 100%;
+  }
+  .el-vistas {
+    display: grid;
+  }
   .el-rotulo {
     font-size: 28px;
   }
@@ -258,23 +456,18 @@
     display: none;
   }
 }
-.el-controles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-16);
-}
-.el-controles label {
-  display: grid;
-  gap: var(--e-8);
-  color: var(--tinta-2);
-  font-size: 14px;
-}
-.el-controles input {
-  width: min(320px, 100%);
-}
-.el-recuento {
-  min-height: 1.5em;
-  margin-top: var(--e-12);
-  color: var(--tinta-2);
-  font-size: 14px;
+
+@media (prefers-reduced-motion: reduce) {
+  .el-vistas::before,
+  .el-tabla summary .icono {
+    transition: none;
+  }
+  .el-vistas a:active {
+    transform: none;
+  }
+  @keyframes el-globo {
+    from {
+      opacity: 0;
+    }
+  }
 }
