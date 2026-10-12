@@ -20,6 +20,7 @@ import {
 } from '../../../lib/elecciones';
 import { EligeProvincia } from './elige-provincia';
 import { InfoDato } from './info-dato';
+import { SimuladorDhondt } from './simulador-dhondt';
 import { TablaProvincias } from './tabla-provincias';
 import './elecciones.css';
 
@@ -36,6 +37,7 @@ const fuentes = {
   escanos: 'https://www.boe.es/buscar/doc.php?id=BOE-A-2026-20742',
   poblacion: 'https://www.boe.es/buscar/doc.php?id=BOE-A-2025-25362',
   loreg: 'https://www.boe.es/buscar/act.php?id=BOE-A-1985-11672#a162',
+  dhondt: 'https://www.boe.es/buscar/act.php?id=BOE-A-1985-11672#a163',
   resultados2023:
     'https://infoelectoral.interior.gob.es/es/elecciones-celebradas/area-de-descargas/',
 };
@@ -198,6 +200,23 @@ export default async function Elecciones({ searchParams }: Props) {
             <SinProvincia href={(id) => href(id, escanos)} />
           )}
         </div>
+      </section>
+
+      <section className="el-reparto" aria-labelledby="el-reparto-titulo">
+        <h2 id="el-reparto-titulo">Y dentro de la provincia, ¿quién se lleva los escaños?</h2>
+        <p>
+          Se reparten con la ley D&apos;Hondt: los votos de cada candidatura se dividen entre 1, 2,
+          3… y los escaños van a los cocientes más altos. Solo entran las que superan el 3 % de los
+          votos válidos (
+          <a className="enlace" href={fuentes.dhondt}>
+            art. 163 de la LOREG
+          </a>
+          ). Prueba con estas candidaturas de ejemplo.
+        </p>
+        <SimuladorDhondt
+          key={provincia?.id ?? 'ninguna'}
+          provincia={provincia && { name: provincia.name, seats: provincia.seats }}
+        />
       </section>
 
       {/* Alternativa al mapa que no depende del color; plegada para no cargar la página. */}

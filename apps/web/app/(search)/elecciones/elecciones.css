@@ -363,6 +363,225 @@
   }
 }
 
+/* ─── Simulador de D'Hondt ─────────────────────────────────────────────────── */
+
+.el-reparto {
+  margin-top: var(--e-64);
+}
+.el-reparto h2 {
+  max-width: 28ch;
+  margin-bottom: var(--e-12);
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.2;
+}
+.el-reparto > p {
+  max-width: 65ch;
+  margin-bottom: var(--e-24);
+  color: var(--tinta-2);
+}
+/* Escritorio: controles a la izquierda y resultado a la derecha. */
+.el-sim {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'escanos resultado'
+    'filas resultado';
+  align-items: start;
+  gap: var(--e-24) var(--e-48);
+}
+.el-sim-escanos {
+  grid-area: escanos;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-8) var(--e-16);
+}
+.el-sim-escanos > span:first-child,
+.el-sim-subtitulo {
+  color: var(--tinta-2);
+  font-size: 14px;
+  font-weight: 500;
+}
+.el-sim-paso {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--r-pildora);
+  background: var(--superficie);
+}
+.el-sim-paso output {
+  min-width: 40px;
+  font-size: 20px;
+  text-align: center;
+}
+.el-sim-nota {
+  color: var(--tinta-3);
+  font-size: 14px;
+}
+
+.el-sim-filas {
+  grid-area: filas;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.el-sim-fila {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 150px 64px;
+  grid-template-areas: 'letra rango votos ganados';
+  align-items: center;
+  gap: 0 var(--e-16);
+  min-height: 64px;
+  border-bottom: 1px solid var(--linea);
+}
+.el-sim-letra {
+  grid-area: letra;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--tinta);
+  color: var(--blanco);
+  font-weight: 500;
+}
+.el-sim-fila input {
+  grid-area: rango;
+}
+.el-sim-votos {
+  grid-area: votos;
+  display: grid;
+  color: var(--tinta-2);
+  font-size: 14px;
+  line-height: 1.35;
+}
+.el-sim-votos .t-dato {
+  color: var(--tinta);
+  font-size: 15px;
+}
+.el-sim-ganados {
+  grid-area: ganados;
+  display: grid;
+  justify-items: end;
+  color: var(--tinta-2);
+  font-size: 14px;
+  line-height: 1.2;
+}
+.el-sim-ganados strong {
+  color: var(--tinta);
+  font-size: 22px;
+  font-weight: 500;
+}
+/* Por debajo del 3 %: apagada, con el motivo escrito junto a sus votos. */
+.el-sim-fila[data-fuera] .el-sim-letra {
+  background: var(--apagado);
+  color: var(--apagado-texto);
+}
+.el-sim-fila[data-fuera] :is(.el-sim-votos, .el-sim-ganados strong) {
+  color: var(--tinta-3);
+}
+
+/* Deslizador de Sol: pista rellena en tinta hasta el valor y botón blanco que crece al pulsarlo. */
+.el-sim input[type='range'] {
+  --pista: linear-gradient(to right, var(--tinta) var(--pct), var(--apagado) var(--pct));
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  appearance: none;
+  background: none;
+  cursor: pointer;
+}
+.el-sim input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: var(--r-pildora);
+  background: var(--pista);
+}
+.el-sim input[type='range']::-moz-range-track {
+  height: 6px;
+  border-radius: var(--r-pildora);
+  background: var(--pista);
+}
+.el-sim input[type='range']::-webkit-slider-thumb {
+  width: 22px;
+  height: 22px;
+  margin-top: -8px;
+  appearance: none;
+  border: 0;
+  border-radius: 50%;
+  background: var(--blanco);
+  box-shadow: var(--sombra-flota);
+  transition: transform var(--t-rapido) var(--curva-salida);
+}
+.el-sim input[type='range']::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--blanco);
+  box-shadow: var(--sombra-flota);
+  transition: transform var(--t-rapido) var(--curva-salida);
+}
+.el-sim input[type='range']:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.el-sim input[type='range']:active::-moz-range-thumb {
+  transform: scale(1.15);
+}
+
+.el-sim-resultado {
+  grid-area: resultado;
+  min-width: 0;
+}
+.el-sim-subtitulo {
+  margin-bottom: var(--e-8);
+}
+.el-sim-orden {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 var(--e-24);
+  padding: 0;
+  list-style: none;
+}
+.el-sim-orden li {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--superficie);
+  font: 500 14px var(--font-mono);
+}
+.info-pagina .el-sim-tabla {
+  width: auto;
+  min-width: 60%;
+  margin: 0;
+}
+.info-pagina .el-sim-tabla :is(th, td) {
+  padding: var(--e-8) var(--e-12);
+  text-align: right;
+  white-space: nowrap;
+}
+.info-pagina .el-sim-tabla :is(thead th, tbody th) {
+  color: var(--tinta-2);
+  font-weight: 500;
+}
+.info-pagina .el-sim-tabla tbody th {
+  text-align: left;
+}
+/* Los cocientes que ganan escaño, en el amarillo de la tarjeta destacada. */
+.el-sim-tabla td[data-gana] {
+  background: var(--amarillo);
+  color: var(--tinta);
+  font-weight: 500;
+}
+.el-sim-tabla tr[data-fuera] {
+  color: var(--tinta-3);
+}
+.el-sim-aviso {
+  margin: 0;
+  font-size: 15px;
+}
+
 /* ─── Fuentes ──────────────────────────────────────────────────────────────── */
 
 .el-fuentes {
@@ -456,6 +675,10 @@
 /* ─── Pantallas estrechas ──────────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
+  .el-sim {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'escanos' 'filas' 'resultado';
+  }
   .el-mapa {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto;
@@ -487,6 +710,19 @@
   .el-ficha .chat-detail-figure {
     font-size: 24px;
   }
+  /* El porcentaje baja bajo el deslizador para que este conserve el ancho. */
+  .el-sim-fila {
+    grid-template-columns: 32px minmax(0, 1fr) 56px;
+    grid-template-areas:
+      'letra rango ganados'
+      'letra votos ganados';
+    padding-block: var(--e-8);
+  }
+  .el-sim-votos {
+    display: flex;
+    gap: var(--e-8);
+    margin-top: -6px;
+  }
   /* A este ancho la cifra quedaría por debajo de 14 px; los escaños siguen en la ficha y la tabla. */
   .el-cifra {
     display: none;
@@ -500,6 +736,13 @@
     transition: none;
   }
   .el-vistas a:active {
+    transform: none;
+  }
+  /* Separadas: un pseudoelemento desconocido invalida toda la regla en ese navegador. */
+  .el-sim input[type='range']:active::-webkit-slider-thumb {
+    transform: none;
+  }
+  .el-sim input[type='range']:active::-moz-range-thumb {
     transform: none;
   }
   @keyframes el-globo {

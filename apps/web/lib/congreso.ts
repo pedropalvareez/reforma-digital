@@ -24,15 +24,19 @@ export function seatsByPopulation(
   });
 }
 
-/** Art. 163: barrera del 3 % de los votos válidos (con los votos en blanco) y D'Hondt. */
-export function dhondt(votes: readonly number[], blank: number, seats: number): number[] {
-  const valid = votes.reduce((sum, v) => sum + v, blank);
-  // Art. 163.2: Ceuta y Melilla, las únicas con un escaño, eligen por mayoría y sin barrera.
-  const barrier = seats === 1 ? 0 : valid * 3;
+/** Art. 163.1.a: votos mínimos para entrar en el reparto, el 3 % de los válidos (con los votos en
+ * blanco). Art. 163.2: Ceuta y Melilla, las únicas con un escaño, eligen por mayoría y sin barrera. */
+export function barrier(votes: readonly number[], blank: number, seats: number): number {
+  return seats === 1 ? 0 : (votes.reduce((sum, v) => sum + v, blank) * 3) / 100;
+}
+
+export type Quotient = { i: number; votes: number; divisor: number };
+
+/** Art. 163: los cocientes de D'Hondt que obtienen escaño, en el orden en que lo obtienen. */
+export function dhondtOrder(votes: readonly number[], blank: number, seats: number): Quotient[] {
+  const minimum = barrier(votes, blank, seats);
   const quotients = votes.flatMap((v, i) =>
-    v * 100 >= barrier
-      ? Array.from({ length: seats }, (_, d) => ({ i, votes: v, divisor: d + 1 }))
-      : [],
+    v >= minimum ? Array.from({ length: seats }, (_, d) => ({ i, votes: v, divisor: d + 1 })) : [],
   );
   // Mayor cociente primero; a igual cociente, la candidatura con más votos totales (art. 163.1.d).
   quotients.sort((a, b) => b.votes * a.divisor - a.votes * b.divisor || b.votes - a.votes);
@@ -43,6 +47,11 @@ export function dhondt(votes: readonly number[], blank: number, seats: number): 
       'Empate a votos en el último escaño: el art. 163.1.d LOREG lo resuelve por sorteo',
     );
   }
-  const elected = quotients.slice(0, seats);
+  return quotients.slice(0, seats);
+}
+
+/** Art. 163: escaños de cada candidatura. */
+export function dhondt(votes: readonly number[], blank: number, seats: number): number[] {
+  const elected = dhondtOrder(votes, blank, seats);
   return votes.map((_, i) => elected.filter((q) => q.i === i).length);
 }

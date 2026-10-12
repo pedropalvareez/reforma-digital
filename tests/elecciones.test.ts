@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { EligeProvincia } from '../apps/web/app/(search)/elecciones/elige-provincia';
 import { InfoDato } from '../apps/web/app/(search)/elecciones/info-dato';
+import { SimuladorDhondt } from '../apps/web/app/(search)/elecciones/simulador-dhondt';
 import { TablaProvincias } from '../apps/web/app/(search)/elecciones/tabla-provincias';
 import Elecciones, { generateMetadata } from '../apps/web/app/(search)/elecciones/page';
 import { cartograma, provincias, recuadroCanarias } from '../apps/web/lib/elecciones';
@@ -219,6 +220,47 @@ it('la «i» se abre al pasar el ratón, al tocarla o con teclado, y se cierra a
     expect(abierto()).toBe(true);
     await act(async () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })));
     expect(abierto()).toBe(false);
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+    vi.unstubAllGlobals();
+  }
+});
+
+it("el simulador reparte con D'Hondt, aplica la barrera del 3 % y sigue los escaños de la provincia", async () => {
+  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
+  const container = document.createElement('div');
+  document.body.append(container);
+  const root = createRoot(container);
+  const orden = () =>
+    [...container.querySelectorAll('.el-sim-orden li')].map((li) => li.textContent?.slice(-1));
+  const ganados = () =>
+    [...container.querySelectorAll('.el-sim-ganados strong')].map((e) => Number(e.textContent));
+  try {
+    await act(async () => root.render(createElement(SimuladorDhondt, {})));
+    // 5 escaños: A y B empatan a 14.000 en el último y lo gana A, con más votos (art. 163.1.d).
+    expect(orden()).toEqual(['A', 'B', 'A', 'C', 'A']);
+    expect(ganados()).toEqual([3, 1, 1, 0, 0]);
+    expect(container.textContent).toContain('no llega al 3 %');
+    expect(container.querySelectorAll('.el-sim-tabla td[data-gana]')).toHaveLength(5);
+
+    await act(async () =>
+      container.querySelector<HTMLButtonElement>('[aria-label="Un escaño más"]')!.click(),
+    );
+    expect(ganados()).toEqual([3, 2, 1, 0, 0]);
+
+    const e = container.querySelector<HTMLInputElement>('#el-sim-E')!;
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(e, '20000');
+    await act(async () => e.dispatchEvent(new Event('input', { bubbles: true })));
+    expect(container.textContent).not.toContain('no llega al 3 %');
+
+    // La página lo vuelve a montar (key) al cambiar de provincia.
+    await act(async () => root.render(createElement('div')));
+    await act(async () =>
+      root.render(createElement(SimuladorDhondt, { provincia: { name: 'Soria', seats: 2 } })),
+    );
+    expect(container.querySelector('.el-sim-paso output')?.textContent).toBe('2');
+    expect(container.textContent).toContain('Los de Soria');
   } finally {
     await act(async () => root.unmount());
     container.remove();
